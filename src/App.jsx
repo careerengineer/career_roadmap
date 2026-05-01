@@ -4,8 +4,8 @@ import { useState } from "react";
 const FirstVisitModal = ({ open, onClose, title, steps }) => {
   if (!open) return null;
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(11, 23, 51, 0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={onClose}>
-      <div style={{ background: '#fff', borderRadius: 14, padding: 32, maxWidth: 480, width: '100%', boxShadow: '0 20px 50px rgba(11, 23, 51,0.2)' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(14, 39, 80, 0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 14, padding: 32, maxWidth: 480, width: '100%', boxShadow: '0 20px 50px rgba(14, 39, 80,0.2)' }} onClick={e => e.stopPropagation()}>
         <h3 style={{ fontSize: 17, fontWeight: 700, color: '#0E2750', margin: 0, marginBottom: 16 }}>{title}</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
           {steps.map((s, i) => (
@@ -231,8 +231,7 @@ const FONT = {
 // ════════════════════════════════════════════════════════════════
 //  CareerEngineer 워크북 라이브러리 (URL은 나중에 일괄 적용)
 // ════════════════════════════════════════════════════════════════
-const WORKBOOK_LINKS = {
-  roadmap:            { label: 'STEP 0 · 취업준비 진단', url: 'https://www.latpeed.com/products/nDbq9' },
+const WORKBOOK_LINKS = { career_roadmap: { label: 'STEP 0 · 취업준비 진단', url: 'https://www.latpeed.com/products/nDbq9' },
   job_analysis:       { label: 'STEP 1 · 채용공고 및 직무 분석', url: 'https://www.latpeed.com/products/-3Wgm' },
   experience:         { label: 'STEP 2 · 경험 정리', url: 'https://www.latpeed.com/products/wDSaj' },
   motivation:         { label: 'STEP 4 · 지원동기 작성', url: 'https://www.latpeed.com/products/dfdMW' },
@@ -313,7 +312,7 @@ export default function App() {
     
     // 7단계 구조 - 자소서 5대 항목만 하위 항목 펼침, 나머지는 단일 링크
     const stepGroups = [
-      { step: '0', label: '취업준비 진단', key: 'roadmap' },
+      { step: '0', label: '취업준비 진단', key: 'career_roadmap' },
       { step: '1', label: '채용공고 및 직무 분석', key: 'job_analysis' },
       { step: '2', label: '경험 정리', key: 'experience' },
       { step: '3', inline: true, label: '', items: [
@@ -553,8 +552,29 @@ export default function App() {
         '결과 화면에서 추천된 액션을 <strong>순서대로 실행</strong>하세요.',
         '진단은 언제든 다시 받을 수 있으니 정직하게 답변하세요.',
       ]} />
+      {/* sticky 헤더 (가이드 PART 7-6) */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#F2F1EC', borderBottom: `1px solid #6E7A8F33`, padding: '12px 16px', marginLeft: -16, marginRight: -16, marginTop: -16, marginBottom: 16, boxShadow: '0 2px 8px rgba(14, 39, 80, 0.12)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <CELockupA height={32} />
+          <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <button onClick={() => setShowStepNav(v => !v)} style={{ 
+              background: COLORS.bgAlt, border: 'none', cursor: 'pointer',
+              fontSize: 16, color: COLORS.accent, textAlign: 'center',
+              padding: '4px 12px', borderRadius: 4, fontFamily: 'inherit',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+            }} title="전체 7단계 보기" className="ce-step-nav-trigger">
+              STEP 0 · 취업준비 진단
+              <span style={{ fontSize: 16, color: COLORS.accent, opacity: 1, transform: showStepNav ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>▾</span>
+            </button>
+            <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="career_roadmap" />
+          </div>
+          <button disabled style={{padding: '8px 14px', borderRadius: 8, border: 'none', fontSize: 16, fontWeight: 600, fontFamily: 'inherit', background: COLORS.accent, color: COLORS.white, opacity: 0.4, cursor: 'not-allowed'}} title="진단 완료 후 활성화됩니다">
+            결과 저장
+          </button>
+        </div>
+      </div>
       {/* ═══ 브랜드 블록 (PART 7-6-1 규격) ═══ */}
-      <div style={{textAlign:"center", padding:"56px 0 16px"}}>
+      <div style={{textAlign:"center", padding:"16px 0 16px"}}>
         {/* CE 락업 — 가이드 PART 1-4-6 인터랙티브 첫 화면 */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
           <CELockupA height={56} />
@@ -603,7 +623,7 @@ export default function App() {
     return (
       <div style={css.wrap}>
         {/* sticky 헤더 (가이드 PART 7-6) */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#F2F1EC', borderBottom: `1px solid #6E7A8F33`, padding: '12px 16px', marginLeft: -16, marginRight: -16, marginTop: -16, marginBottom: 16, boxShadow: '0 2px 8px rgba(11, 23, 51, 0.12)' }}>
+        <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#F2F1EC', borderBottom: `1px solid #6E7A8F33`, padding: '12px 16px', marginLeft: -16, marginRight: -16, marginTop: -16, marginBottom: 16, boxShadow: '0 2px 8px rgba(14, 39, 80, 0.12)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ fontSize: 20, fontWeight: 700, color: COLORS.accent, letterSpacing: -0.3 }}>CareerEngineer</div>
             <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
@@ -616,9 +636,9 @@ export default function App() {
                 STEP 0 · 취업준비 진단
                 <span style={{ fontSize: FONT.size.xs, color: COLORS.accent, opacity: 1, transform: showStepNav ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>▾</span>
               </button>
-              <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="roadmap" />
+              <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="career_roadmap" />
             </div>
-            <span style={{ fontSize: 14, color: COLORS.sub, whiteSpace: 'nowrap' }}>{qi+1}/{QS.length}</span>
+            <span style={{ fontSize: 16, color: COLORS.sub, whiteSpace: 'nowrap' }}>{qi+1}/{QS.length}</span>
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",padding:"20px 0 16px",gap:10}}>
@@ -658,9 +678,9 @@ export default function App() {
     return (
       <div style={css.wrap}>
         <div style={{padding:"24px 0 16px",textAlign:"center"}}>
-          <div style={{fontSize: 14,letterSpacing:3,color:COLORS.sub,marginBottom:8}}>진단 결과</div>
+          <div style={{fontSize: 16,letterSpacing:3,color:COLORS.sub,marginBottom:8}}>진단 결과</div>
           <h1 style={{fontSize:22,fontWeight:700,margin:"0 0 6px"}}>지금 집중해야 할 단계</h1>
-          <div style={{display:"inline-block",background:COLORS.accent,color:"#fff",borderRadius:10,padding:"8px 20px",fontSize:15,fontWeight:600,marginTop:8}}>
+          <div style={{display:"inline-block",background:COLORS.accent,color:"#fff",borderRadius:10,padding:"8px 20px",fontSize: 16,fontWeight:600,marginTop:8}}>
             STEP {result.weakest.step}. {result.weakest.name}
           </div>
         </div>
@@ -674,14 +694,14 @@ export default function App() {
               <div key={i} style={{marginBottom:8}}>
                 <div onClick={()=>setExpandedAction(isOpen?-1:i)}
                   style={{padding:"14px 16px",borderRadius:isOpen?"14px 14px 0 0":"14px",background:"#fff",border:`1px solid ${COLORS.border}`,cursor:"pointer",display:"flex",alignItems:"flex-start",gap:12}}>
-                  <div style={{minWidth:28,height:28,borderRadius:8,background:COLORS.accent2,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,flexShrink:0}}>{i+1}</div>
+                  <div style={{minWidth:28,height:28,borderRadius:8,background:COLORS.accent2,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize: 16,fontWeight:700,flexShrink:0}}>{i+1}</div>
                   <div style={{flex:1}}>
-                    <div style={{fontSize:14,fontWeight:600,lineHeight:1.4}}>{action.text}</div>
+                    <div style={{fontSize: 16,fontWeight:600,lineHeight:1.4}}>{action.text}</div>
                   </div>
-                  <span style={{fontSize: 14,color:COLORS.sub,transform:isOpen?"rotate(180deg)":"rotate(0)",transition:"transform .2s",flexShrink:0,marginTop:4}}>▼</span>
+                  <span style={{fontSize: 16,color:COLORS.sub,transform:isOpen?"rotate(180deg)":"rotate(0)",transition:"transform .2s",flexShrink:0,marginTop:4}}>▼</span>
                 </div>
                 {isOpen && (
-                  <div style={{padding:"14px 16px 14px 56px",background:"#FBFAF6",borderRadius:"0 0 14px 14px",border:`1px solid ${COLORS.border}`,borderTop:"none",fontSize: 14,color:"#1B3A6B",lineHeight:1.7,whiteSpace:"pre-line"}}>
+                  <div style={{padding:"14px 16px 14px 56px",background:"#FBFAF6",borderRadius:"0 0 14px 14px",border:`1px solid ${COLORS.border}`,borderTop:"none",fontSize: 16,color:"#1B3A6B",lineHeight:1.7,whiteSpace:"pre-line"}}>
                     {action.detail}
                   </div>
                 )}
@@ -697,12 +717,12 @@ export default function App() {
             {result.docs.map((d, i) => (
               <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 14px",borderRadius:12,marginBottom:6,border:`1px solid ${COLORS.border}`,background:"#fff"}}>
                 <div style={{flex:1, textAlign:"center"}}>
-                  <div style={{fontSize: 14,fontWeight:500}}>{d.n}</div>
+                  <div style={{fontSize: 16,fontWeight:500}}>{d.n}</div>
                 </div>
                 {d.u ? (
-                  <a href={d.u} target="_blank" rel="noopener noreferrer" style={{fontSize: 14,color:COLORS.accent2,textDecoration:"none",fontWeight:500,padding:"6px 14px",border:`1px solid ${COLORS.accent2}`,borderRadius:8}}>보기</a>
+                  <a href={d.u} target="_blank" rel="noopener noreferrer" style={{fontSize: 16,color:COLORS.accent2,textDecoration:"none",fontWeight:500,padding:"6px 14px",border:`1px solid ${COLORS.accent2}`,borderRadius:8}}>보기</a>
                 ) : (
-                  <span style={{fontSize: 14,color:"#6E7A8F",padding:"6px 14px",border:`1px solid ${COLORS.border}`,borderRadius:8}}>링크 준비 중</span>
+                  <span style={{fontSize: 16,color:"#6E7A8F",padding:"6px 14px",border:`1px solid ${COLORS.border}`,borderRadius:8}}>링크 준비 중</span>
                 )}
               </div>
             ))}
@@ -715,64 +735,64 @@ export default function App() {
           <div style={{borderRadius:14,border:`1px solid ${COLORS.border}`,overflow:"hidden"}}>
             {result.remaining.map((r, i) => (
               <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:i<result.remaining.length-1?`1px solid ${COLORS.border}`:"none",background:r.step===result.weakest.step?"#F2F1EC":"#fff"}}>
-                <div style={{minWidth:24,height:24,borderRadius:6,background:statusBg[r.status],display:"flex",alignItems:"center",justifyContent:"center",fontSize: 14,fontWeight:700,color:statusColor[r.status]}}>
+                <div style={{minWidth:24,height:24,borderRadius:6,background:statusBg[r.status],display:"flex",alignItems:"center",justifyContent:"center",fontSize: 16,fontWeight:700,color:statusColor[r.status]}}>
                   {statusIcon[r.status]}
                 </div>
                 <div style={{flex:1}}>
-                  <span style={{fontSize: 14,fontWeight:r.step===result.weakest.step?700:500}}>STEP {r.step}. {r.name}</span>
-                  {r.step===result.weakest.step && <span style={{fontSize: 14,color:COLORS.accent2,fontWeight:600,marginLeft:8}}>지금 여기</span>}
+                  <span style={{fontSize: 16,fontWeight:r.step===result.weakest.step?700:500}}>STEP {r.step}. {r.name}</span>
+                  {r.step===result.weakest.step && <span style={{fontSize: 16,color:COLORS.accent2,fontWeight:600,marginLeft:8}}>지금 여기</span>}
                 </div>
-                <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:90,fontSize:14,padding:"4px 8px",borderRadius:20,background:statusColor[r.status]+"18",color:statusColor[r.status],fontWeight:500,flexShrink:0}}>{statusLabel[r.status]}</span>
+                <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:90,fontSize: 16,padding:"4px 8px",borderRadius:20,background:statusColor[r.status]+"18",color:statusColor[r.status],fontWeight:500,flexShrink:0}}>{statusLabel[r.status]}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* ═══ 관련 자료 + 멘토링 안내 (PART 6-4, 7-8) ═══ */}
-        <div style={{ background: '#F2F1EC', border: '1px solid rgba(25, 113, 194, 0.2)', borderRadius: 10, padding: 16, marginTop: 24, marginBottom: 16 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#0E2750', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 8 }}>INFO · 다음 STEP 안내</p>
-          <p style={{ fontSize: 14, color: '#0E2750', margin: 0, lineHeight: 1.6 }}>진단 결과에서 추천한 액션을 순서대로 실행하세요</p>
+        <div style={{ background: '#F2F1EC', border: '1px solid rgba(27, 58, 107, 0.2)', borderRadius: 10, padding: 16, marginTop: 24, marginBottom: 16 }}>
+          <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 8 }}>INFO · 다음 STEP 안내</p>
+          <p style={{ fontSize: 16, color: '#0E2750', margin: 0, lineHeight: 1.6 }}>진단 결과에서 추천한 액션을 순서대로 실행하세요</p>
         </div>
 
         <div style={{ background: '#FBFAF6', borderRadius: 10, padding: 16, marginBottom: 16 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#0E2750', margin: 0, marginBottom: 8 }}>함께 보면 좋은 자료</p>
+          <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0, marginBottom: 8 }}>함께 보면 좋은 자료</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', gap: 8, padding: 8, background: '#fff', borderRadius: 6, alignItems: 'flex-start' }}>
               <div style={{ width: 4, background: '#0E2750', borderRadius: 2, alignSelf: 'stretch', minHeight: 28 }} />
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#0E2750', margin: 0 }}>채용공고 분석 & 직무분석 가이드</p>
-                <p style={{ fontSize: 14, color: '#6E7A8F', margin: 0, marginTop: 2, lineHeight: 1.6 }}>방향 설정 후 직무를 구체화</p>
+                <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>채용공고 분석 & 직무분석 가이드</p>
+                <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 2, lineHeight: 1.6 }}>방향 설정 후 직무를 구체화</p>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, padding: 8, background: '#fff', borderRadius: 6, alignItems: 'flex-start' }}>
               <div style={{ width: 4, background: '#0E2750', borderRadius: 2, alignSelf: 'stretch', minHeight: 28 }} />
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, color: '#0E2750', margin: 0 }}>경험정리 가이드 & 워크북</p>
-                <p style={{ fontSize: 14, color: '#6E7A8F', margin: 0, marginTop: 2, lineHeight: 1.6 }}>진단 결과에 따른 다음 단계 실행</p>
+                <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>경험정리 가이드 & 워크북</p>
+                <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 2, lineHeight: 1.6 }}>진단 결과에 따른 다음 단계 실행</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div style={{ background: '#FBFAF6', border: '1px solid rgba(230, 119, 0, 0.2)', borderRadius: 10, padding: 16, marginBottom: 16 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#A8853F', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 12, textAlign: 'center' }}>1:1 멘토링 · 컨설팅 안내</p>
-          <p style={{ fontSize: 14, color: '#0E2750', margin: 0, marginBottom: 16, lineHeight: 1.6, textAlign: 'center' }}>혼자 막히는 부분이 있다면 시니어 현직자와 1:1로 풀어보세요. 멘토링 수강 시 관련 가이드워크북이 무료 제공됩니다.</p>
+        <div style={{ background: '#FBFAF6', border: '1px solid rgba(168, 133, 63, 0.2)', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+          <p style={{ fontSize: 16, fontWeight: 600, color: '#A8853F', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 12, textAlign: 'center' }}>1:1 멘토링 · 컨설팅 안내</p>
+          <p style={{ fontSize: 16, color: '#0E2750', margin: 0, marginBottom: 16, lineHeight: 1.6, textAlign: 'center' }}>혼자 막히는 부분이 있다면 시니어 현직자와 1:1로 풀어보세요. 멘토링 수강 시 관련 가이드워크북이 무료 제공됩니다.</p>
           <div style={{ display: 'grid', gap: 8 }}>
             <a href="https://www.latpeed.com/products/S92cP" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>CareerEngineer 1-Hour 1:1 취업컨설팅</p>
-              <p style={{ fontSize: 14, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>방향 설정이 막막하다면 — 자소서·이력서·면접 중 핵심 고민 1시간 집중. 기초 전자책 5종 무료 제공.</p>
+              <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>방향 설정이 막막하다면 — 자소서·이력서·면접 중 핵심 고민 1시간 집중. 기초 전자책 5종 무료 제공.</p>
             </a>
             <a href="https://www.latpeed.com/products/fKnUV" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>자소서 멘토링 프로그램</p>
-              <p style={{ fontSize: 14, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>서류 합격이 어렵다면 — 채용담당자 관점 첨삭. 자소서 5종 + 경험정리 가이드 무료 제공.</p>
+              <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>서류 합격이 어렵다면 — 채용담당자 관점 첨삭. 자소서 5종 + 경험정리 가이드 무료 제공.</p>
             </a>
             <a href="https://www.latpeed.com/products/tZ5xw" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>면접 멘토링 프로그램</p>
-              <p style={{ fontSize: 14, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>실전 답변이 안 나온다면 — 면접관 관점 모의면접. 1분 자기소개 + 면접 신입/경력 가이드 무료 제공.</p>
+              <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>실전 답변이 안 나온다면 — 면접관 관점 모의면접. 1분 자기소개 + 면접 신입/경력 가이드 무료 제공.</p>
             </a>
             <a href="https://www.latpeed.com/products/LimF9" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>이직 컨설팅 (경력직)</p>
-              <p style={{ fontSize: 14, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>이직 결정이 어렵다면 — 결정부터 면접까지 1:1 동행. 경력기술서 + 이력서 + 면접 경력직 가이드 무료 제공.</p>
+              <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>이직 결정이 어렵다면 — 결정부터 면접까지 1:1 동행. 경력기술서 + 이력서 + 면접 경력직 가이드 무료 제공.</p>
             </a>
           </div>
         </div>
@@ -814,10 +834,10 @@ export default function App() {
             a.download = `취업준비_진단결과_${today}.doc`;
             a.click();
             URL.revokeObjectURL(url);
-          }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,background:COLORS.accent,color:COLORS.white,cursor:"pointer",fontSize:14,fontWeight:600}}>
+          }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,background:COLORS.accent,color:COLORS.white,cursor:"pointer",fontSize: 16,fontWeight:600}}>
             결과 저장 (.doc)
           </div>
-          <div onClick={reset} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,border:`1px solid ${COLORS.border}`,cursor:"pointer",fontSize: 14,color:COLORS.sub}}>
+          <div onClick={reset} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,border:`1px solid ${COLORS.border}`,cursor:"pointer",fontSize: 16,color:COLORS.sub}}>
             다시 진단하기
           </div>
         </div>

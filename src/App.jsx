@@ -1,21 +1,29 @@
 import { useState } from "react";
 
+
+// 멘토링·컨설팅 URL 상수 (작업 18: URL 상수화)
+const MENTORING_URLS = {
+  consulting:        'https://www.latpeed.com/products/S92cP',  // 1-Hour 1:1 취업컨설팅
+  career_consulting: 'https://www.latpeed.com/products/LimF9',  // 이직 컨설팅
+  cover_letter:      'https://www.latpeed.com/products/fKnUV',  // 자소서 멘토링
+  interview:         'https://www.latpeed.com/products/tZ5xw',  // 면접 멘토링
+};
 // ══════════ 사용 안내 팝업 (PART 7-8) ══════════
 const FirstVisitModal = ({ open, onClose, title, steps }) => {
   if (!open) return null;
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(14, 39, 80, 0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={onClose}>
-      <div style={{ background: '#fff', borderRadius: 14, padding: 32, maxWidth: 480, width: '100%', boxShadow: '0 20px 50px rgba(14, 39, 80,0.2)' }} onClick={e => e.stopPropagation()}>
+      <div style={{ background: '#fff', borderRadius: 14, padding: 32, maxWidth: 480, width: '100%', boxShadow: '0 20px 50px rgba(14, 39, 80,0.2)', fontFamily: '"Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif' }} onClick={e => e.stopPropagation()}>
         <h3 style={{ fontSize: 17, fontWeight: 700, color: '#0E2750', margin: 0, marginBottom: 16 }}>{title}</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
-          {steps.map((s, i) => (
-            <div key={i} style={{ display: 'flex', gap: 8, fontSize: 16, color: '#0E2750', lineHeight: 1.7 }}>
+          {(steps || []).map((s, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, fontSize: 15, color: '#0E2750', lineHeight: 1.7 }}>
               <span style={{ color: '#C9A86A', fontWeight: 700, minWidth: 20 }}>{i+1}.</span>
               <span dangerouslySetInnerHTML={{ __html: s }} />
             </div>
           ))}
         </div>
-        <button onClick={onClose} style={{ background: '#0E2750', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: 16, fontWeight: 600, cursor: 'pointer', width: '100%' }}>
+        <button onClick={onClose} style={{ background: '#0E2750', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: 16, fontWeight: 600, cursor: 'pointer', width: '100%', fontFamily: 'inherit' }}>
           확인, 시작합니다
         </button>
       </div>
@@ -25,8 +33,8 @@ const FirstVisitModal = ({ open, onClose, title, steps }) => {
 
 // ══════════ 하단 고정 저작권 + 문의 (PART 7-8, 11) ══════════
 const StickyFooter = () => (
-  <div style={{ position: 'sticky', bottom: 0, background: '#fff', borderTop: '1px solid #6E7A8F33', padding: '10px 16px', marginTop: 24, zIndex: 5 }}>
-    <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+  <div style={{ position: 'sticky', bottom: 0, background: '#FBFAF6', borderTop: '1px solid #6E7A8F33', padding: '10px 16px', marginTop: 24, zIndex: 5 }}>
+    <div style={{ maxWidth: 1350, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
       <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0 }}>© 2026 CareerEngineer. All Rights Reserved.</p>
       <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0 }}>
         <a href="https://open.kakao.com/me/careerengineer" target="_blank" rel="noopener noreferrer" style={{ color: '#C9A86A', textDecoration: 'none' }}>CareerEngineer 카카오톡 상담</a>
@@ -76,6 +84,348 @@ const QS = [
   ]},
 ];
 
+// ════════════════════════════════════════════════════════════════
+//  단계별 깊이 있는 가이드 — 상황 진단, 흔한 고민, 비전, 셀프체크
+//  목적: 지원자가 "내가 지금 왜 막혀있는지", "어떻게 풀어가야 하는지"를
+//        스스로 이해하고, 혼자서도 한 발씩 나아갈 수 있게 돕기
+// ════════════════════════════════════════════════════════════════
+function getStageGuide(stepKey, stepLevel, who) {
+  // who: "new" | "career" | "switch" | "grad"
+  // stepKey: "job" | "jd" | "exp" | "essay" | "resume" | "interview"
+  // stepLevel: 해당 단계의 응답값 (0,1,2,3...)
+
+  // ── STEP 0. 방향 설정 ──────────────────────────────────────
+  if (stepKey === "job") {
+    if (stepLevel === 0) return {
+      situation: who === "new"
+        ? "지금은 '내가 뭘 잘하는지', '뭘 하고 싶은지'가 흐릿한 상태입니다. 자기 탐색이 부족한 게 아니라, 직무라는 언어로 풀어볼 기회가 없었던 것입니다."
+        : who === "career"
+        ? "이직을 결심했지만 '같은 직무로 갈 것인가, 아예 다른 길로 갈 것인가'를 아직 못 정한 상태입니다. 이 결정이 빨리 안 나면 자소서·이력서가 모두 흔들립니다."
+        : who === "switch"
+        ? "직무를 바꾸고 싶은 마음은 있지만 '어디로 갈지', '왜 가야 하는지'가 아직 명확하지 않은 단계입니다. 가장 중요한 시기이자 가장 시간이 오래 걸리는 단계입니다."
+        : "연구 경험을 어디로 끌고 갈지 (R&D · 기업 일반직 · 공공기관 · 학계 잔류) 아직 결정하지 못한 상태입니다.",
+      concerns: who === "new" ? [
+        "전공이랑 관련된 직무를 해야 할 것 같은데, 그게 진짜 하고 싶은 건지 모르겠다",
+        "주변 친구들은 다 정한 것 같은데 나만 늦은 것 같다",
+        "MBTI나 적성검사 결과가 다 다르게 나와서 더 헷갈린다",
+      ] : who === "switch" ? [
+        "지금 직무가 적성에 안 맞는 것 같은데, 새 직무도 막상 가보면 똑같지 않을까 두렵다",
+        "전혀 다른 길로 가는 건 너무 늦은 것 같고, 그렇다고 지금 이대로는 못 견디겠다",
+        "준비할 게 많아 보이는데 어디서부터 손대야 할지 모르겠다",
+      ] : who === "career" ? [
+        "지금 회사가 싫은 건지, 일이 싫은 건지 구분이 안 된다",
+        "동종업계로 가면 비슷한 문제가 또 생길 것 같다",
+        "연봉만 올리면 되는 건지, 커리어 방향을 바꿔야 하는 건지 모르겠다",
+      ] : [
+        "연구실 진로와 기업 진로 사이에서 결정을 못 내리고 있다",
+        "전공을 살리자니 R&D는 좁고, 일반직으로 가자니 학위가 아깝다",
+        "내 연구가 기업에서 어떻게 쓰일 수 있는지 감이 안 온다",
+      ],
+      selfCheck: [
+        "내가 좋아하는 것 / 잘하는 것 / 돈을 받을 수 있는 것을 각각 5개씩 적을 수 있는가?",
+        "관심 직무 후보를 3개 이상 말할 수 있는가? (동의어 말고 다른 직무로)",
+        "각 후보 직무가 '실제로 하루 종일 무슨 일을 하는지' 설명할 수 있는가?",
+      ],
+      vision: "이 단계를 넘으면, 자소서를 쓸 때 '왜 이 직무인가'에 1분간 막힘 없이 답할 수 있게 됩니다. 자소서·이력서·면접 모든 단계의 방향이 한 번에 정렬됩니다.",
+      selfHelp: [
+        "잡코리아·사람인에서 '추천 직무 검사' 무료 진단을 해보세요. 결과 자체보다 '왜 이렇게 분류되는지' 직무 설명을 읽는 게 진짜 자료가 됩니다.",
+        "'OO직무 현직자' 유튜브 영상을 후보 직무별로 3개씩 보세요. 9개 영상 후엔 어떤 직무가 나와 맞는지 직감이 옵니다.",
+        "후보 직무 채용공고를 5개씩 읽으면서 '이건 할 수 있겠다'와 '이건 못 견디겠다'를 솔직하게 표시해보세요.",
+      ],
+      whenToAskHelp: "직무 후보가 5개 이상으로 계속 늘어나기만 하고, 좁혀지지 않는 상태가 2주 이상 지속될 때입니다. 이때는 혼자보다 외부 시각이 빠릅니다.",
+    };
+    if (stepLevel === 1) return {
+      situation: "후보 직무가 1~2개로 좁혀진 상태입니다. 이제 '어느 쪽으로 갈지' 결정만 남았는데, 결정이 어려운 이유는 정보가 부족해서입니다 — 모르는 것에 베팅을 못 하는 게 당연합니다.",
+      concerns: [
+        "둘 다 매력적인데 하나만 골라야 한다는 게 부담스럽다",
+        "한 번 정하면 못 바꿀 것 같아서 결정을 미루게 된다",
+        "정보가 부족한데 어떻게 하면 더 알 수 있을지 모르겠다",
+      ],
+      selfCheck: [
+        "각 후보 직무의 '하루 일과'를 30분 단위로 묘사할 수 있는가?",
+        "각 직무에서 '재미없는 부분', '힘든 부분'까지 알고 있는가?",
+        "5년 후 이 직무에서 어떤 위치에 있고 싶은지 그려지는가?",
+      ],
+      vision: "직무 1개를 확정하면, 자소서 지원동기에 들어갈 핵심 한 문장이 나옵니다. 그 한 문장이 자소서 5대 항목 전체의 톤을 잡아줍니다.",
+      selfHelp: [
+        "후보 직무 채용공고 각 5개씩(총 10개)을 출력하거나 한 화면에 띄워놓고, 자격요건을 색깔로 표시해보세요. 같은 색이 많은 쪽이 '내가 이미 준비된' 직무입니다.",
+        "직무는 결혼이 아니라 첫 직장입니다. 첫 3년 후엔 또 한 번 선택할 기회가 옵니다. 지금 결정의 무게를 너무 무겁게 두지 마세요.",
+      ],
+      whenToAskHelp: "결정이 1주일 이상 진전 없을 때, 또는 두 직무가 너무 달라서 비교 자체가 어려울 때입니다.",
+    };
+    return null;
+  }
+
+  // ── STEP 1. 채용공고 분석 ──────────────────────────────────
+  if (stepKey === "jd") {
+    if (stepLevel === 0) return {
+      situation: "채용공고를 거의 안 봤거나 대충 훑어본 상태입니다. 이 단계를 건너뛰면 자소서가 '내 이야기'에 갇혀 회사가 원하는 것과 어긋나게 됩니다 — 서류 탈락의 가장 큰 원인입니다.",
+      concerns: [
+        "공고를 어디서 어떻게 모아야 할지 막막하다",
+        "공고를 봐도 다 비슷비슷해 보여서 뭐가 중요한지 모르겠다",
+        "내가 못 가진 자격요건이 너무 많아 보여서 보기가 싫어진다",
+      ],
+      selfCheck: [
+        "이 직무의 '자격요건'과 '우대사항'의 차이를 알고 있는가?",
+        "공고에서 반복되는 키워드 3개 이상을 말할 수 있는가?",
+        "이 직무에서 '핵심 업무'와 '주변 업무'를 구분할 수 있는가?",
+      ],
+      vision: "공고 10개를 분석하면, '이 직무를 하는 사람의 1년치 업무'가 머릿속에 그려집니다. 자소서·면접에서 '실제로 일해본 것처럼' 이야기할 수 있게 됩니다.",
+      selfHelp: [
+        "잡코리아·사람인·원티드에 같은 직무 키워드로 검색해 공고 10개를 모으세요. 엑셀 또는 노션에 [회사명/자격요건/우대사항/주요업무] 4열 표를 만들고 그대로 복사해 붙이세요.",
+        "10개 공고를 다 채운 후, 각 열에서 반복되는 단어에 색칠을 해보세요. 노란색이 많은 단어가 곧 이 직무의 '핵심 키워드'입니다.",
+        "자격요건에 못 미친다고 자소서를 안 쓰지 마세요. 신입 공고는 75% 정도의 충족률이면 지원 가능합니다.",
+      ],
+      whenToAskHelp: "공고를 10개 모았는데도 '뭘 뽑아내야 할지 모르겠다'면, 그건 직무가 아직 너무 광범위하거나 (예: '마케팅') 직무 이해가 부족한 단계입니다.",
+    };
+    if (stepLevel === 1) return {
+      situation: "공고를 몇 개 봤지만 패턴을 잡기엔 표본이 부족한 상태입니다. 1~5개로는 '이 회사의 특수성'과 '직무의 일반론'을 구분할 수 없습니다.",
+      concerns: [
+        "공고마다 요구사항이 조금씩 달라서 뭘 기준으로 잡아야 할지 모르겠다",
+        "10개를 채우는 게 노가다 같아서 의미를 모르겠다",
+        "내가 모르는 용어가 많은데 그게 진짜 중요한 건지 판단이 안 된다",
+      ],
+      selfCheck: [
+        "공고 10개에서 공통으로 등장하는 우대사항 3가지를 꼽을 수 있는가?",
+        "회사 규모(대기업/중견/스타트업)별 자격요건 차이를 설명할 수 있는가?",
+      ],
+      vision: "10개 공고에서 패턴을 뽑아내면, 자소서 직무역량 항목과 이력서 한줄소개의 핵심 키워드가 자동으로 결정됩니다. 더 이상 '뭘 강조해야 하지?'라고 헤매지 않게 됩니다.",
+      selfHelp: [
+        "남은 공고를 채우는 것은 작업이 아니라 '직무 학습'입니다. 1개당 10분만 들이면 30분이 지나는데, 30분에 직무 핵심을 배운다고 생각하면 효율이 좋습니다.",
+        "모르는 용어가 나오면 그냥 넘기지 말고 검색해보세요. 모르는 용어 5개를 검색해 알게 되면, 그 자체가 면접에서의 '직무 이해도'가 됩니다.",
+      ],
+      whenToAskHelp: "공고 분석은 혼자 충분히 가능합니다. 다만 '이 키워드가 진짜 중요한지' 판단이 어려울 때는 현직자 콘텐츠를 보면 빠르게 해결됩니다.",
+    };
+    return null;
+  }
+
+  // ── STEP 2. 경험 정리 ──────────────────────────────────────
+  if (stepKey === "exp") {
+    if (stepLevel === 0) return {
+      situation: who === "new"
+        ? "경험이 없는 게 아니라 '경험을 꺼내본 적이 없는' 상태입니다. 대부분의 취준생이 자기 경험을 30%만 기억합니다 — 정리하면 70%가 새로 보입니다."
+        : who === "career"
+        ? "재직하면서 한 일이 너무 일상이 되어 '성과'로 분리해서 보지 못하는 상태입니다. 경력직의 가장 큰 약점은 '한 일'은 많은데 '나만의 기여'가 안 보이는 것입니다."
+        : who === "grad"
+        ? "연구 경험을 학술 언어로만 가지고 있는 상태입니다. 그대로는 기업 채용담당자에게 전달이 안 됩니다 — 연구를 '문제 해결'이라는 언어로 번역하는 작업이 필요합니다."
+        : "경험 정리 자체를 시작 못 한 상태입니다. 자소서를 쓰기 전에 반드시 거쳐야 하는 단계인데, 대부분 이 단계를 건너뛰고 바로 자소서로 넘어가서 막힙니다.",
+      concerns: who === "new" ? [
+        "내세울 만한 대단한 경험이 없는 것 같다",
+        "내가 한 거라곤 학교 수업, 알바, 동아리뿐이다",
+        "자소서에 쓸 만한 것은 한두 개뿐일 것 같다",
+      ] : who === "career" ? [
+        "팀이 한 일이지 내가 단독으로 한 일이 별로 없는 것 같다",
+        "수치로 표현할 수 있는 성과가 별로 없다",
+        "비슷한 업무가 매년 반복되어 어떻게 정리해야 할지 모르겠다",
+      ] : who === "grad" ? [
+        "내 연구를 비전공자가 이해할 수 있게 설명할 자신이 없다",
+        "논문 외에 다른 무엇이 있는지 모르겠다",
+        "기업이 내 연구의 어떤 부분을 가치 있게 볼지 감이 없다",
+      ] : [
+        "어디서부터 정리해야 할지 모르겠다",
+        "경험을 뽑아내는 일이 너무 막막하고 시간이 오래 걸릴 것 같다",
+      ],
+      selfCheck: [
+        who === "career" ? "최근 3년 동안 진행한 프로젝트/업무를 10개 이상 나열할 수 있는가?" : who === "grad" ? "연구 프로젝트별로 [문제/방법/결과/임팩트] 4가지를 정리해본 적이 있는가?" : "대학 4년의 경험을 카테고리별(수업/프로젝트/동아리/알바/대외활동/봉사/자격증)로 15개 이상 적을 수 있는가?",
+        "각 경험에서 '내가 구체적으로 무슨 행동을 했는지' 1분간 말할 수 있는가?",
+        "그 경험에서 '수치로 표현할 수 있는 결과'가 하나라도 있는가?",
+      ],
+      vision: "경험 인벤토리가 완성되면, 자소서 5대 항목에 어느 경험을 어디에 넣을지 자동으로 매칭됩니다. 더 이상 '뭐 쓰지?'에 머물지 않고 '어떻게 더 잘 쓸까?'에 집중하게 됩니다.",
+      selfHelp: who === "new" ? [
+        "'대단한 경험만 써야 한다'는 생각을 먼저 버리세요. 조별과제·과제 프로젝트·아르바이트도 다 좋은 소재입니다 — 어떻게 풀어내느냐가 중요합니다.",
+        "엑셀이나 노션 표를 열고, 카테고리(수업·프로젝트·동아리·알바·대외활동·봉사·자격증·공모전·기타)별로 한 줄씩만 적어보세요. 한 시간이면 15개 이상이 나옵니다.",
+        "각 경험에 '#동기 #역량 #성과 #성격 #성장' 5개 태그 중 가장 어울리는 것을 1~2개 붙이세요. 자소서 항목과 1:1 매칭이 보이기 시작합니다.",
+      ] : who === "career" ? [
+        "회사별·연도별로 시간순으로 늘어놓고, 각 프로젝트마다 [상황-과제-행동-결과-임팩트] 5칸 표를 만드세요. STAR-I 구조라고 부릅니다.",
+        "'팀이 한 일'이 아니라 '내 손에서 나온 결과물'을 분리해 적으세요. '제가 직접 OO을 작성/설계/실행해서 OO이 가능했다'는 형태가 됩니다.",
+        "수치는 매출·비용절감만이 아닙니다. 처리 건수, 단축된 시간, 줄어든 오류율, 늘어난 사용자 수 등 다 가능합니다.",
+      ] : who === "grad" ? [
+        "각 연구 프로젝트를 [어떤 문제 / 왜 중요 / 어떻게 접근 / 무엇을 발견]의 4단으로 정리하세요. '논문 제목'이 아니라 '문제 해결 스토리'가 되어야 합니다.",
+        "연구실에서의 협업·후배 지도·외부 기관 방문·학회 운영 등 비기술적 활동도 다 정리하세요. 기업은 이걸 '소프트스킬'로 봅니다.",
+      ] : [
+        "엑셀이나 노션을 열고 카테고리별로 한 줄씩 적어보세요. 한 시간이면 충분합니다.",
+      ],
+      whenToAskHelp: "경험을 적기는 했는데 '뭐가 직무에 연결되는지' 판단이 안 설 때입니다. 직무 이해가 깊지 않은 상태에서 혼자 매칭하면 엉뚱한 곳에 강조점이 가게 됩니다.",
+    };
+    if (stepLevel === 1) return {
+      situation: "머릿속에 경험이 있다는 건 알지만 글로 꺼내지 않은 상태입니다. 머릿속에 두면 자소서를 쓸 때마다 처음부터 다시 끄집어내게 되고, 경험들 사이의 연결이 안 보입니다.",
+      concerns: [
+        "쓰면 정리되겠지만 막상 표를 열면 손이 잘 안 간다",
+        "기억이 가물가물해서 정확히 안 떠오른다",
+        "정리해도 자소서랑 어떻게 연결될지 안 보인다",
+      ],
+      selfCheck: [
+        "경험 인벤토리가 노션·엑셀·문서 형태로 '눈에 보이게' 정리되어 있는가?",
+        "각 경험에 직무 관련성 태그가 붙어 있는가?",
+      ],
+      vision: "정리된 인벤토리가 있으면, 자소서를 쓸 때 '아, 그때 그 경험이 있었지!'라는 깨달음이 안 일어납니다 — 시작부터 어느 경험을 쓸지 알고 시작합니다.",
+      selfHelp: [
+        "완벽한 정리를 노리지 마세요. 각 경험을 1~2줄로 짧게 적고, 시간 날 때 한 줄씩 살을 붙이는 식으로 진행하세요.",
+        "기억이 안 나는 경험은 SNS·메신저·이메일·포트폴리오·성적증명서 등을 보면서 발굴하세요. '아, 이런 것도 있었네' 하는 경험이 자소서의 핵심이 되곤 합니다.",
+      ],
+      whenToAskHelp: "정리는 했는데 자소서 5대 항목과 경험을 매칭하는 게 어려울 때입니다 — 경험 정리는 혼자 가능하지만, 매칭은 외부 시각이 도움이 됩니다.",
+    };
+    return null;
+  }
+
+  // ── STEP 4. 자소서 작성 ────────────────────────────────────
+  if (stepKey === "essay") {
+    if (stepLevel === 0) return {
+      situation: "자소서를 시작 못 한 상태입니다. 가장 흔한 이유는 '잘 쓰고 싶어서 시작을 못 하는' 경우입니다 — 초안은 못 쓰는 게 아니라 안 쓰는 것입니다. 다행히 STEP 3에서 이력서를 만드셨다면, 자소서 5대 항목의 절반은 이미 재료가 준비되어 있습니다 — 이력서의 경험·성과를 그대로 풀어쓰는 작업입니다.",
+      concerns: [
+        "잘 쓴 자소서를 보면 내가 절대 못 쓸 것 같다",
+        "어디서부터 시작해야 할지 모르겠다",
+        "내 경험이 너무 평범해서 쓸 게 없을 것 같다",
+      ],
+      selfCheck: [
+        "5대 항목(지원동기/직무역량/성격장단점/목표수립달성/입사후포부) 각각에 어떤 경험을 쓸지 1줄로 정해져 있는가?",
+        "지원동기 첫 문장을 한 줄로 말할 수 있는가?",
+      ],
+      vision: "초안을 쓰고 나면, 자소서는 '쓰는 일'이 아니라 '고치는 일'이라는 걸 알게 됩니다. 첫 단계만 넘기면 그다음은 훨씬 쉽습니다.",
+      selfHelp: [
+        "지원동기부터 쓰세요. 4단 구조가 가장 안전합니다: ① 직무에 끌린 구체적 계기 → ② 알아갈수록 확신이 커진 과정 → ③ 회사 차별점과 내 가치관 연결 → ④ 입사 후 어떻게 기여할지.",
+        "분량은 일단 무시하세요. 길게 쓴 후 줄이는 게 짧게 쓴 후 늘리는 것보다 훨씬 쉽습니다.",
+        "한 항목당 30분만 쓰겠다고 타이머를 맞추세요. 완벽주의에 빠져 30분이 3시간으로 늘어나는 게 진짜 적입니다.",
+      ],
+      whenToAskHelp: "초안은 혼자 쓸 수 있습니다. 다만 '이게 합격 수준인지' 객관적으로 판단이 안 될 때, 외부 시각이 필요합니다.",
+    };
+    if (stepLevel === 1) return {
+      situation: "초안이 있거나 일부만 작성된 상태입니다. 가장 위험한 단계인데, 이유는 '한 번 쓴 글에 애착이 생겨서' 객관적으로 다시 보기가 어려워지기 때문입니다.",
+      concerns: [
+        "썼는데 이게 잘 쓴 건지 못 쓴 건지 판단이 안 선다",
+        "수정을 시작하면 어디까지 고쳐야 할지 끝이 없을 것 같다",
+        "여러 회사에 같은 자소서를 쓰면 안 된다는데 시간이 부족하다",
+      ],
+      selfCheck: [
+        "5개 항목 중 같은 경험이 2번 이상 등장하지 않는가?",
+        "각 항목에 직무상세내용 키워드가 최소 2개 이상 들어가 있는가?",
+        "'열심히, 최선을, 열정' 같은 추상적 표현이 3개 이하인가?",
+        "친구나 가족이 읽었을 때 '이건 너답다'고 느끼게 쓰여 있는가?",
+      ],
+      vision: "5대 항목 초안이 다 차고 셀프 체크 80%를 넘기면, 같은 직무 내 다른 회사 지원도 70%만 수정하면 됩니다 — 30% 시간으로 1개 회사를 더 지원할 수 있습니다.",
+      selfHelp: [
+        "썼던 자소서를 하루 묵혔다가 다시 읽으세요. 그날 쓴 글은 좋아 보이고, 다음 날 읽으면 어색한 부분이 보입니다.",
+        "각 항목에 '결론 한 문장 → 근거 경험 → 의미·교훈' 구조가 있는지 확인하세요. 없으면 그게 약한 부분입니다.",
+        "회사별 커스터마이즈는 '회사명 + 비즈니스 특성 + 최근 이슈' 3가지만 바꿔도 충분합니다. 100% 새로 쓸 필요 없습니다.",
+      ],
+      whenToAskHelp: "셀프 체크에서 50% 이하만 통과되거나, '내 자소서가 합격 수준인지' 판단이 정말 안 설 때입니다. 이때는 외부 첨삭이 가장 효율적입니다.",
+    };
+    if (stepLevel === 2) return {
+      situation: "여러 번 지원했지만 서류에서 계속 떨어지는 상태입니다. 본인 책임이 아닐 수도 있지만 (TO 부족, 회사별 변수 등), 5번 이상 떨어졌다면 자소서 자체에 구조적 문제가 있을 가능성이 높습니다.",
+      concerns: [
+        "이력서/자소서 어디가 문제인지 모르겠다 — 떨어진 회사에서 피드백을 안 준다",
+        "자소서를 다 갈아엎어야 하는 건지, 일부만 고치면 되는 건지 모르겠다",
+        "지원할수록 자존감이 떨어지고 의욕도 같이 떨어진다",
+      ],
+      selfCheck: [
+        "탈락한 자소서들에서 '같은 경험을 다른 회사에 거의 그대로 쓴' 경우가 있는가?",
+        "지원동기에서 '이 회사 이름을 지우고 다른 회사 이름을 넣어도 말이 되는' 부분이 있는가?",
+        "직무상세내용을 1번만 보고 자소서를 쓴 회사가 있는가?",
+        "자소서 5개 항목에 같은 프로젝트가 2번 이상 들어간 자소서가 있는가?",
+      ],
+      vision: "탈락 원인을 정확히 진단하면, 한 번의 수정으로 다음 시즌 합격률이 크게 올라갑니다. 같은 자소서로 30번 떨어진 사람이 진단 후 2~3번 안에 서류 통과한 사례가 많습니다.",
+      selfHelp: [
+        "STEP 1(채용공고 분석)으로 돌아가세요. 서류 탈락의 70%는 자소서 문장력이 아니라 '직무 키워드 누락' 때문입니다.",
+        "최근 떨어진 자소서 3개를 펼쳐놓고, 회사명을 가린 채 같은 사람이 쓴 글로 보이는지 확인하세요. 보이면 회사별 커스터마이즈가 부족한 것입니다.",
+        "추상적 표현(열심히/최선을/열정/책임감)을 모두 색칠하세요. 색칠된 부분이 5개 이상이면, 그 부분은 모두 구체적 경험·수치·결과로 교체해야 합니다.",
+      ],
+      whenToAskHelp: "5번 이상 탈락이 반복되고, 셀프 진단으로 원인을 찾기 어려울 때입니다. 이때는 채용담당자 시각을 가진 외부 첨삭이 시간을 가장 많이 절약해줍니다.",
+    };
+    return null;
+  }
+
+  // ── STEP 3. 이력서 작성 ────────────────────────────────────
+  if (stepKey === "resume") {
+    if (stepLevel === 0) return {
+      situation: "이력서가 아직 없는 상태입니다. 이력서는 자소서보다 먼저 만드는 게 효율적입니다 — 이력서에 정리된 경험·성과·키워드가 그대로 자소서 5대 항목의 뼈대가 되기 때문입니다. 자소서부터 쓰려고 하면 매번 처음부터 경험을 끄집어내야 해서 비효율적입니다.",
+      concerns: [
+        "어떤 양식을 써야 할지 모르겠다",
+        "내가 가진 게 별로 없어서 빈약해 보일 것 같다",
+        "여러 직무에 지원하는데 매번 새로 만들어야 하는지 모르겠다",
+      ],
+      selfCheck: [
+        "이력서 한줄 소개에 직무상세내용 키워드가 들어가 있는가?",
+        "경험·프로젝트가 '한 일' 나열이 아니라 '결과'로 표현되어 있는가?",
+        "PDF로 변환했을 때 레이아웃이 깨지지 않는가?",
+      ],
+      vision: "직무 맞춤 이력서가 완성되면, 그다음 자소서 작성 속도가 2배 빨라집니다. 이력서의 한 줄 한 줄이 자소서의 직무역량·목표달성·성격장단점 항목의 소재가 됩니다. 다른 회사 지원 시에도 '한줄 소개와 키워드' 정도만 수정하면 됩니다 — 한 번 잘 만들면 두고두고 활용됩니다.",
+      selfHelp: [
+        "기본 양식은 노션·잡코리아 이력서 템플릿·MS Word 이력서 템플릿 어느 것이든 좋습니다. 디자인보다 '내용'이 100배 중요합니다.",
+        "한줄 소개는 [핵심 역량 키워드] + [구체적 강점] + [지원 직무 의지] 구조로 쓰세요. 예: 'SQL·GA로 고객 데이터를 직접 분석한 마케팅 지원자'.",
+        "ATS(자동 서류 심사)를 통과하려면 화려한 인포그래픽보다 깔끔한 텍스트 위주가 안전합니다.",
+        "STEP 2에서 정리한 경험 인벤토리를 옆에 두고 시작하세요 — 이력서는 그것을 직무 관점으로 재정렬하는 작업입니다.",
+      ],
+      whenToAskHelp: "이력서는 양식보다 '경험을 어떻게 표현하느냐'가 핵심이라 혼자서도 충분히 가능합니다. 다만 경력기술서가 처음이거나 학술 CV에서 기업 이력서로 변환이 어려울 때는 외부 시각이 도움이 됩니다.",
+    };
+    if (stepLevel === 1) return {
+      situation: "이력서가 있지만 직무에 따라 커스터마이즈하지 않고 모든 회사에 같은 버전을 보내고 있는 상태입니다. ATS와 채용담당자 모두 이런 이력서를 잘 잡아냅니다.",
+      concerns: [
+        "회사별로 매번 고치는 게 시간이 너무 든다",
+        "어디까지 바꿔야 직무 맞춤이라고 할 수 있는지 모르겠다",
+      ],
+      selfCheck: [
+        "지원 직무가 바뀔 때 '한줄 소개' 키워드를 바꾸는가?",
+        "직무에 직접 관련 없는 스펙(예: 마케팅에 토익 OPIc)이 너무 부각되어 있지 않은가?",
+      ],
+      vision: "직무별 이력서 2~3종이 있으면, 회사별 수정은 5~10분이면 됩니다. 시간 절약이 곧 더 많은 회사 지원으로 이어집니다.",
+      selfHelp: [
+        "한줄 소개에 직무 키워드 2~3개를 반드시 넣으세요 (STEP 1에서 뽑은 키워드).",
+        "경험 순서를 지원 직무 관련성 순으로 재배치하세요. 가장 관련 높은 경험이 위에 와야 합니다.",
+      ],
+      whenToAskHelp: "이 단계는 혼자 충분히 가능합니다.",
+    };
+    return null;
+  }
+
+  // ── STEP 5. 면접 준비 ──────────────────────────────────────
+  if (stepKey === "interview") {
+    if (stepLevel === 0) return {
+      situation: "면접 준비를 아직 시작하지 않은 상태입니다. 서류가 통과되고서야 시작하는 사람이 많은데, 그러면 일정에 쫓겨 답변의 깊이가 안 나옵니다 — 면접 준비는 자소서 작성과 병행해야 효율이 좋습니다.",
+      concerns: [
+        "아직 서류 통과 전인데 면접 준비를 해야 할지 망설여진다",
+        "예상 질문이 너무 많아서 어디서부터 준비해야 할지 모르겠다",
+        "긴장하면 머릿속이 하얘지는 게 두렵다",
+      ],
+      selfCheck: [
+        "1분 자기소개 스크립트가 있는가?",
+        "자소서에 쓴 경험에 대해 꼬리질문이 들어왔을 때 답할 수 있는가?",
+        "지원 회사의 최근 뉴스 3개를 알고 있는가?",
+      ],
+      vision: "20개 핵심 질문에 답변이 준비되어 있으면, 새로운 질문이 들어와도 그중 비슷한 답변을 응용해 대응할 수 있게 됩니다. 80% 질문이 비슷한 패턴 안에 있습니다.",
+      selfHelp: [
+        "자기소개 1분 30초부터 만드세요. 모든 면접의 첫 질문이고, 첫인상이 결정되는 순간입니다.",
+        "자소서 항목별로 면접관이 물어볼 만한 질문 3~4개씩을 뽑으면 자동으로 20개가 됩니다. 거기에 인성·직무·이직 관련 공통 질문 5개씩을 더하세요.",
+        "답변은 STAR(상황-과제-행동-결과) 구조로 정리하되, 통째로 외우지 마세요. 키워드만 기억하고 자연스럽게 말하는 연습이 진짜 핵심입니다.",
+        "혼자 거울 보면서 소리 내서 말하세요. 머릿속 답변과 입에서 나오는 답변은 완전히 다릅니다.",
+      ],
+      whenToAskHelp: "스크립트는 만들었는데 막상 입에서 안 나오거나, 모의 면접을 해줄 사람이 없을 때입니다. 이때는 객관적 피드백이 가장 큰 자산이 됩니다.",
+    };
+    if (stepLevel === 1) return {
+      situation: "예상 질문은 생각해봤지만 답변을 정리하거나 소리 내서 연습하지 않은 상태입니다. 면접에서 가장 흔한 실수가 '머릿속으로만 준비하는 것'입니다.",
+      concerns: [
+        "쓰면 길어지는데 말로 하면 짧아진다",
+        "긴장하면 평소와 다르게 말이 꼬인다",
+        "답변이 기계적으로 들릴까봐 걱정된다",
+      ],
+      selfCheck: [
+        "각 질문에 대한 답변을 1분 이내로 말할 수 있는가?",
+        "답변에 메모를 보지 않고 말할 수 있는가?",
+        "꼬리질문 (그래서 무엇을 배웠나요? 다시 한다면?) 에 대비되어 있는가?",
+      ],
+      vision: "소리 내어 3번씩 연습하면, 면접장에서 답변의 첫 30초가 자동으로 나옵니다. 첫 30초가 자연스러우면 면접관도 긴장이 풀려 좋은 분위기로 진행됩니다.",
+      selfHelp: [
+        "타이머를 켜고 한 질문에 1분 답변 연습을 하세요. 처음엔 30초밖에 안 나오거나 2분이 넘게 걸리는데, 5번 반복하면 1분에 정확히 맞춰집니다.",
+        "휴대폰으로 녹음해서 들어보세요. 듣다 보면 '아, 이 부분이 어색하구나'가 보입니다 — 본인이 가장 정직한 청취자입니다.",
+        "친구·가족에게 모의 면접을 부탁할 때는 '편하게 들어주는' 사람보다 '날카롭게 짚어주는' 사람이 좋습니다.",
+      ],
+      whenToAskHelp: "혼자 연습은 한계가 있습니다. 누가 들어줄 사람이 없거나, 객관적 피드백을 받고 싶을 때 외부 모의 면접이 가장 효과적입니다.",
+    };
+    return null;
+  }
+
+  return null;
+}
+
 function analyze(ans) {
   const who = ans.who;
   const levels = { job: ans.job, jd: ans.jd, exp: ans.exp, essay: ans.essay, resume: ans.resume, interview: ans.interview };
@@ -85,8 +435,8 @@ function analyze(ans) {
     { key:"job", step:0, name:"방향 설정" },
     { key:"jd", step:1, name:"채용공고 분석" },
     { key:"exp", step:2, name:"경험 정리" },
-    { key:"essay", step:3, name:"자소서 작성" },
-    { key:"resume", step:4, name:"이력서 작성" },
+    { key:"resume", step:3, name:"이력서 작성" },
+    { key:"essay", step:4, name:"자소서 작성" },
     { key:"interview", step:5, name:"면접 준비" },
   ];
 
@@ -112,7 +462,7 @@ function analyze(ans) {
     addAction(0, { text: "지원할 직무 후보 5개를 뽑으세요", detail: who === "new" ? "전공 기반 + 관심 기반 + 강점 기반으로 나눠서 생각해보세요. 잡코리아/사람인에서 다양한 직무의 채용공고를 훑어보는 것도 도움됩니다." : who === "switch" ? "'왜 바꾸려 하는가'를 먼저 정리하세요. 기존 경험에서 전이 가능한 역량이 있는 직무를 찾아보세요." : who === "grad" ? "연구직(R&D), 기업 일반직, 공공기관 중 방향을 먼저 정하세요." : "현 직무와 같은 직무인지, 다른 직무로 가고 싶은지 먼저 결정하세요." });
     addAction(0, { text: "현직자 콘텐츠 3개 이상 찾아보세요", detail: "유튜브 '○○직무 현실', 블로그 현직자 후기, 블라인드 직무 게시판을 활용하세요. 실제로 하는 일이 내 생각과 맞는지 확인하는 과정입니다." });
     docs.push({ n: "채용공고 및 직무 분석", u: "https://www.latpeed.com/products/-3Wgm" });
-    if (who === "career" || who === "switch") docs.push({ n: "CareerEngineer 1-Hour 1:1 취업컨설팅", u: "https://www.latpeed.com/products/S92cP" });
+    if (who === "career" || who === "switch") docs.push({ n: "CareerEngineer 1-Hour 1:1 취업컨설팅", u: MENTORING_URLS.consulting });
   } else if (levels.job === 1) {
     addAction(0, { text: "후보 직무의 채용공고를 각각 5개씩 읽어보세요", detail: "실제 업무 내용, 자격요건, 우대사항을 비교하면 어떤 직무가 나와 맞는지 감이 옵니다. 공고를 읽으면서 '이건 할 수 있겠다/재밌겠다'는 느낌이 오는 쪽으로 좁히세요." });
     addAction(0, { text: "후보를 1~2개로 좁혀서 확정하세요", detail: "'나는 OO 직무에 지원할 것이다'를 한 문장으로 말할 수 있으면 됩니다." });
@@ -140,45 +490,47 @@ function analyze(ans) {
     docs.push({ n: "자소서 작성", u: "https://www.latpeed.com/products/dfdMW" });
   }
 
-  // STEP 3: 자소서
-  if (levels.exp >= 1 && levels.essay === 0) {
-    addAction(3, { text: "자소서 5대 항목 중 지원동기부터 초안을 쓰세요", detail: "'왜 이 직무인가' \u2192 '왜 이 회사인가' \u2192 '무엇을 준비했는가' \u2192 '어떻게 기여할 것인가' 순서로 씁니다. 완벽하지 않아도 됩니다. 초안을 쓰고 수정하는 반복이 핵심입니다." });
-    if (who === "switch") addAction(3, { text: "지원동기에 '왜 전환하는가'를 반드시 넣으세요", detail: "기존 직무에서 관심이 생긴 계기 \u2192 확신이 커진 과정 \u2192 기존 경험의 강점 연결 \u2192 이 회사인 이유. '싫어서 도망'이 아닌 '끌려서 선택'으로 써야 합니다." });
+  // STEP 3: 이력서 (경험 정리 다음)
+  if (levels.exp >= 1 && levels.resume === 0) {
+    addAction(3, { text: who === "career" ? "경력기술서를 포함한 이력서를 작성하세요" : who === "grad" ? "학술 CV를 기업 이력서로 변환하세요" : "이력서를 만들고 PDF로 변환하세요", detail: who === "career" ? "경력 요약 \u2192 경력사항(역순) \u2192 핵심성과 \u2192 스킬 \u2192 학력 순서. 최근 경력일수록 상세하게 씁니다. 이력서가 자소서보다 먼저인 이유: 이력서에서 정리한 성과·키워드가 자소서 직무역량 항목의 뼈대가 됩니다." : who === "grad" ? "논문 목록은 핵심 1~2개만 남기고, 연구의 비즈니스 임팩트를 강조하세요. 학술 용어를 쉬운 말로 바꾸세요. 이력서를 먼저 정리하면, 자소서에서 어떤 경험을 어디에 배치할지가 명확해집니다." : "인적사항 \u2192 한줄소개(직무상세내용 키워드 반영) \u2192 학력 \u2192 경험(성과 중심) \u2192 스킬 순서. 파일명은 '이름_직무_이력서.pdf'. 이력서를 먼저 만들면, 자소서 5대 항목에 어떤 경험을 어디에 쓸지가 자동으로 보입니다." });
+    docs.push({ n: "이력서 작성", u: "https://www.latpeed.com/products/k6z-h" });
+    if (who === "career") docs.push({ n: "경력기술서 작성", u: "https://www.latpeed.com/products/YmTqC" });
+  } else if (levels.resume === 1) {
+    addAction(3, { text: "이력서를 지원 직무에 맞게 커스터마이즈하세요", detail: "한줄소개에 직무상세내용 키워드를 반영하고, 경험을 해당 직무 관점으로 재기술하세요. 모든 회사에 같은 이력서를 보내면 안 됩니다." });
+    docs.push({ n: "이력서 작성", u: "https://www.latpeed.com/products/k6z-h" });
+  }
+
+  // STEP 4: 자소서 (이력서 다음)
+  if (levels.resume >= 1 && levels.essay === 0) {
+    addAction(4, { text: "자소서 5대 항목 중 지원동기부터 초안을 쓰세요", detail: "'왜 이 직무인가' \u2192 '왜 이 회사인가' \u2192 '무엇을 준비했는가' \u2192 '어떻게 기여할 것인가' 순서로 씁니다. 이력서에 정리해둔 경험·성과를 그대로 활용하세요. 완벽하지 않아도 됩니다 — 초안을 쓰고 수정하는 반복이 핵심입니다." });
+    if (who === "switch") addAction(4, { text: "지원동기에 '왜 전환하는가'를 반드시 넣으세요", detail: "기존 직무에서 관심이 생긴 계기 \u2192 확신이 커진 과정 \u2192 기존 경험의 강점 연결 \u2192 이 회사인 이유. '싫어서 도망'이 아닌 '끌려서 선택'으로 써야 합니다." });
     docs.push({ n: "지원동기 작성", u: "https://www.latpeed.com/products/dfdMW" });
     docs.push({ n: "자소서 작성", u: "https://www.latpeed.com/products/dfdMW" });
-    docs.push({ n: "자소서 멘토링", u: "https://www.latpeed.com/products/fKnUV" });
+    docs.push({ n: "자소서 멘토링", u: MENTORING_URLS.cover_letter });
   } else if (levels.essay === 1) {
-    addAction(3, { text: "나머지 항목 초안을 완성하고 완성기준으로 셀프 점검하세요", detail: "지원동기 \u2192 직무확보역량 \u2192 성격장단점 \u2192 목표수립 \u2192 입사후포부 순서. 같은 경험을 2개 항목에 넣지 마세요. 완성기준 체크리스트로 80% 이상 통과해야 합니다." });
+    addAction(4, { text: "나머지 항목 초안을 완성하고 완성기준으로 셀프 점검하세요", detail: "지원동기 \u2192 직무확보역량 \u2192 성격장단점 \u2192 목표수립 \u2192 입사후포부 순서. 같은 경험을 2개 항목에 넣지 마세요. 완성기준 체크리스트로 80% 이상 통과해야 합니다." });
     docs.push({ n: "자소서 작성", u: "https://www.latpeed.com/products/dfdMW" });
-    docs.push({ n: "자소서 멘토링", u: "https://www.latpeed.com/products/fKnUV" });
+    docs.push({ n: "자소서 멘토링", u: MENTORING_URLS.cover_letter });
   } else if (levels.essay === 2) {
-    addAction(3, { text: "탈락 원인을 진단하세요", detail: "아래 항목을 확인해보세요:\n- 직무상세내용 키워드가 자소서에 들어가 있는가?\n- '열심히', '최선을' 같은 추상적 표현이 있는가?\n- 경험에 수치/결과가 있는가?\n- 다른 회사에 넣어도 바꿀 곳이 없는 자소서인가?\n하나라도 해당되면 그것이 탈락 원인입니다." });
-    addAction(3, { text: "채용공고 분석부터 다시 하세요", detail: "서류 탈락이 반복되면 자소서 문장력이 아니라 방향 자체가 틀린 경우가 대부분입니다. STEP 1(채용공고 분석)로 돌아가서 키워드를 다시 뽑고, 그 키워드에 맞춰 자소서를 재구성하세요." });
+    addAction(4, { text: "탈락 원인을 진단하세요", detail: "아래 항목을 확인해보세요:\n- 직무상세내용 키워드가 자소서에 들어가 있는가?\n- '열심히', '최선을' 같은 추상적 표현이 있는가?\n- 경험에 수치/결과가 있는가?\n- 다른 회사에 넣어도 바꿀 곳이 없는 자소서인가?\n하나라도 해당되면 그것이 탈락 원인입니다." });
+    addAction(4, { text: "채용공고 분석부터 다시 하세요", detail: "서류 탈락이 반복되면 자소서 문장력이 아니라 방향 자체가 틀린 경우가 대부분입니다. STEP 1(채용공고 분석)로 돌아가서 키워드를 다시 뽑고, 그 키워드에 맞춰 자소서를 재구성하세요." });
     docs.push({ n: "채용공고 및 직무 분석", u: "https://www.latpeed.com/products/-3Wgm" });
     docs.push({ n: "자소서 작성", u: "https://www.latpeed.com/products/dfdMW" });
-    docs.push({ n: "자소서 멘토링", u: "https://www.latpeed.com/products/fKnUV" });
+    docs.push({ n: "자소서 멘토링", u: MENTORING_URLS.cover_letter });
   }
 
-  // STEP 4: 이력서
-  if (levels.essay >= 1 && levels.resume === 0) {
-    addAction(4, { text: who === "career" ? "경력기술서를 포함한 이력서를 작성하세요" : who === "grad" ? "학술 CV를 기업 이력서로 변환하세요" : "이력서를 만들고 PDF로 변환하세요", detail: who === "career" ? "경력 요약 \u2192 경력사항(역순) \u2192 핵심성과 \u2192 스킬 \u2192 학력 순서. 최근 경력일수록 상세하게 씁니다." : who === "grad" ? "논문 목록은 핵심 1~2개만 남기고, 연구의 비즈니스 임팩트를 강조하세요. 학술 용어를 쉬운 말로 바꾸세요." : "인적사항 \u2192 한줄소개(직무상세내용 키워드 반영) \u2192 학력 \u2192 경험(성과 중심) \u2192 스킬 순서. 파일명은 '이름_직무_이력서.pdf'." });
-    docs.push({ n: "이력서 작성", u: "https://www.latpeed.com/products/k6z-h" });
-  } else if (levels.resume === 1) {
-    addAction(4, { text: "이력서를 지원 직무에 맞게 커스터마이즈하세요", detail: "한줄소개에 직무상세내용 키워드를 반영하고, 경험을 해당 직무 관점으로 재기술하세요. 모든 회사에 같은 이력서를 보내면 안 됩니다." });
-  }
-
-  // STEP 5: 면접
+  // STEP 5: 면접 (자소서 + 이력서 모두 1 이상일 때)
   if (levels.essay >= 1 && levels.resume >= 1 && levels.interview === 0) {
     addAction(5, { text: "자기소개 1분 30초 스크립트부터 만드세요", detail: "모든 면접의 첫 질문입니다. 핵심 경험 + 핵심 역량 + 지원 직무 기여 방향을 1분 30초로 정리하세요." });
     addAction(5, { text: "자소서 기반 예상 질문 20개를 뽑으세요", detail: "자소서 각 항목에서 면접관이 물을 수 있는 질문을 뽑고, 각각 STAR(상황-과제-행동-결과) 구조로 답변을 정리하세요. 반드시 소리 내어 연습하세요." });
     if (who === "career") addAction(5, { text: "이직 고유 질문을 준비하세요", detail: "퇴사 사유(30초 이내, 긍정적으로), 연봉 기대치(업계 조사 기반 범위), 전 직장 성과(STAR-I 3개), 인수인계 기간을 미리 정리하세요." });
     if (who === "switch") addAction(5, { text: "'왜 전환하는가'를 1분 이내로 말하는 연습을 하세요", detail: "직무 전환 면접에서는 거의 모든 질문이 이것과 연결됩니다. 기존 경험의 강점 + 새 직무 준비 과정 + 기여 방향을 자연스럽게 연결하세요." });
     docs.push({ n: "신입 면접 준비", u: "https://www.latpeed.com/products/wUjfn" });
-    docs.push({ n: "면접 멘토링", u: "https://www.latpeed.com/products/tZ5xw" });
+    docs.push({ n: "면접 멘토링", u: MENTORING_URLS.interview });
     if (who === "career" || who === "switch") docs.push({ n: "경력 면접 준비", u: "https://www.latpeed.com/products/vJAeZ" });
   } else if (levels.interview === 1) {
     addAction(5, { text: "답변을 정리하고 소리 내어 연습하세요", detail: "머릿속으로 생각하는 것과 입으로 말하는 것은 완전히 다릅니다. 최소 3번, 가능하면 누군가에게 들려주면서 연습하세요. 키워드만 외우고 자연스럽게 말하는 것이 목표입니다." });
-    docs.push({ n: "면접 멘토링", u: "https://www.latpeed.com/products/tZ5xw" });
+    docs.push({ n: "면접 멘토링", u: MENTORING_URLS.interview });
   }
 
   // primary(weakest 단계) 먼저, 그다음 secondary
@@ -208,7 +560,10 @@ function analyze(ans) {
   const seen = new Set();
   const uniqueDocs = docs.filter(d => { if (seen.has(d.n)) return false; seen.add(d.n); return true; });
 
-  return { who, weakest, now: topNow, remaining, docs: uniqueDocs };
+  // 깊이 있는 단계별 가이드 (현재 위치 진단, 흔한 고민, 셀프체크, 비전)
+  const stageGuide = getStageGuide(weakest.key, levels[weakest.key], who);
+
+  return { who, weakest, now: topNow, remaining, docs: uniqueDocs, stageGuide };
 }
 
 const COLORS = { accent:"#0E2750", accent2:"#C9A86A", sub:"#6E7A8F", border:"#6E7A8F33", bg:"#ffffff", bgAlt:"#F2F1EC", white: "#ffffff", green: '#C9A86A', greenBg: '#FBFAF6', red: '#0E2750', redBg: '#F2F1EC', yellow: '#C9A86A', yellowBg: '#FBFAF6', blue: '#1B3A6B', blueBg: '#F2F1EC' };
@@ -222,10 +577,194 @@ const FONT = {
 };
 
   // ══════════ CE 로고 (정식 PNG base64 임베딩) ══════════
+  const CE_SYMBOL_B64 = "data:image/png;base64,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";
   const CE_LOCKUP_B64 = "data:image/png;base64,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";
-  const CELockupA = ({ height = 32 }) => (
-    <img src={CE_LOCKUP_B64} alt="CareerEngineer" style={{ height: height, width: 'auto', flexShrink: 0, display: 'inline-block' }} />
+  const CESymbol = ({ size = 32 }) => (
+    <img src={CE_SYMBOL_B64} alt="CareerEngineer 심볼" style={{ height: size, width: 'auto', flexShrink: 0, display: 'inline-block' }} />
   );
+  const CELockupA = ({ height = 32 }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: height * 0.2, height: height, lineHeight: 1, flexShrink: 0 }}>
+      <img src={CE_SYMBOL_B64} alt="" aria-hidden="true" style={{ height: height, width: 'auto', display: 'block' }} />
+      <span style={{ fontFamily: '"Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif', fontWeight: 800, fontSize: height * 0.62, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }} aria-label="CareerEngineer">
+        <span style={{ color: '#0E2750' }}>Career</span><span style={{ color: '#C9A86A' }}>Engineer</span>
+      </span>
+    </span>
+  );
+
+// ════════════════════════════════════════════════════════════
+//  표준 Intro 페이지 컴포넌트 — 통일 7-Block 구조
+//  (Brand Standards v1.0 + 통일 방안 v1.0 적용)
+// ════════════════════════════════════════════════════════════
+const _INTRO_FONT = '"Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
+const _INTRO_INK = '#0E2750';
+const _INTRO_INK2 = '#1B3A6B';
+const _INTRO_PAPER = '#F2F1EC';
+const _INTRO_GOLD = '#C9A86A';
+const _INTRO_MUTE = '#6E7A8F';
+
+const BrandHero = () => (
+  <div style={{ textAlign: 'center', marginBottom: 24, paddingTop: 12 }}>
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+      <CELockupA height={56} />
+    </div>
+    <p style={{ fontSize: 20, fontWeight: 700, color: _INTRO_INK, margin: '8px 0 0', fontFamily: _INTRO_FONT }}>
+      생각하는 힘으로 커리어를 설계하다
+    </p>
+    <p style={{ fontSize: 15, fontWeight: 400, color: _INTRO_MUTE, margin: '4px 0 0', lineHeight: 1.6, fontFamily: _INTRO_FONT }}>
+      취업이 막막하던 사람도 CareerEngineer의 질문에 답하다 보면,<br />
+      생각하는 힘이 길러집니다. 일하는 방식이 달라집니다. 채용담당자가 먼저 알아봅니다.
+    </p>
+  </div>
+);
+
+const IntroCTA = ({ onClick, children }) => (
+  <button
+    onClick={onClick}
+    className="ce-intro-cta"
+    style={{
+      width: '100%', padding: '16px 32px',
+      background: _INTRO_INK, color: '#ffffff',
+      border: 'none', borderRadius: 4,
+      fontSize: 16, fontWeight: 600, cursor: 'pointer',
+      fontFamily: _INTRO_FONT, marginTop: 16,
+    }}
+  >
+    {children || '시작하기'}
+  </button>
+);
+
+const IntroFlowCard = ({ flow, flowTitle }) => {
+  if (!flow || flow.length === 0) return null;
+  return (
+    <div style={{ background: _INTRO_PAPER, borderRadius: 12, padding: 20, marginBottom: 24 }}>
+      <p style={{ fontSize: 15, fontWeight: 700, color: _INTRO_INK, margin: 0, marginBottom: 12 }}>
+        {flowTitle || '이 워크북의 작성 순서'}
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {flow.map((item, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 15, color: _INTRO_INK2 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: _INTRO_INK, flexShrink: 0, minWidth: 64 }}>
+              {item.label}
+            </span>
+            <span style={{ flex: 1, lineHeight: 1.6 }}>{item.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const IntroPrerequisites = ({ items }) => {
+  if (!items || items.length === 0) return null;
+  return (
+    <div style={{ background: '#FBFAF6', border: `1px solid ${_INTRO_GOLD}33`, color: _INTRO_INK, padding: 16, borderRadius: 10, marginBottom: 16 }}>
+      <p style={{ fontSize: 15, fontWeight: 700, color: _INTRO_INK, margin: 0, marginBottom: 10 }}>사전 준비물</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {items.map((item, i) => {
+          const isObj = typeof item === 'object' && item !== null;
+          const text = isObj ? item.text : item;
+          const recommend = isObj ? item.recommend : null;
+          const link = recommend ? WORKBOOK_LINKS[recommend.workbookId] : null;
+          return (
+            <div key={i}>
+              <p style={{ fontSize: 14, color: _INTRO_INK, margin: 0, lineHeight: 1.6 }}>· {text}</p>
+              {link && (
+                <p style={{ fontSize: 13, color: _INTRO_MUTE, margin: '2px 0 0 14px', lineHeight: 1.6 }}>
+                  └ {recommend.condition || '아직 준비되지 않았다면'} →{' '}
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: _INTRO_INK2, fontWeight: 700, textDecoration: 'underline', textDecorationColor: `${_INTRO_INK2}66`, textUnderlineOffset: 2 }}
+                  >
+                    {recommend.linkLabel || link.label}
+                  </a>
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const IntroCopyright = () => (
+  <div style={{ background: _INTRO_PAPER, border: `1px solid ${_INTRO_INK}33`, color: _INTRO_INK, padding: 16, borderRadius: 10, marginBottom: 16 }}>
+    <p style={{ fontSize: 14, color: _INTRO_INK, fontWeight: 700, margin: 0, lineHeight: 1.6 }}>
+      작성 내용을 반드시 다운로드해 주세요. 페이지를 새로 고치거나 창을 닫으면 모든 내용이 즉시 삭제됩니다. 수시로 '저장하기' 버튼을 눌러 파일로 다운로드하시기 바랍니다.
+    </p>
+  </div>
+);
+
+const IntroFooterCopyright = () => (
+  <p style={{ textAlign: 'center', fontSize: 13, color: _INTRO_MUTE, marginTop: 16, lineHeight: 1.6, padding: '0 16px' }}>
+    © 2026 CareerEngineer. All Rights Reserved. 저작권법에 의하여 보호받는 저작물이므로 무단 전재와 무단 복제를 금합니다. 이 자료는 구매하신 분의 취업을 위한 개인 학습 용도로 자유롭게 활용하실 수 있으나, 자료의 전부 또는 일부를 다른 사람에게 공유하거나, 복제·재판매·재배포하는 것은 금지되어 있습니다. <strong>이를 위반할 경우 관련 법률에 따라 민·형사상 책임을 질 수 있습니다.</strong>
+  </p>
+);
+
+const IntroStickyHeader = ({ workbookKey, stepLabel, StepNavComponent }) => {
+  const [showStepNav, setShowStepNav] = useState(false);
+  return (
+    <div style={{ position: 'sticky', top: 16, zIndex: 10, background: _INTRO_PAPER, borderRadius: 14, padding: 16, border: `1px solid ${_INTRO_MUTE}33`, marginBottom: 16, boxShadow: '0 2px 8px rgba(14, 39, 80, 0.12)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <CELockupA height={32} />
+        <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
+          <button
+            onClick={() => setShowStepNav(v => !v)}
+            style={{ background: _INTRO_PAPER, border: 'none', cursor: 'pointer', fontSize: 15, color: _INTRO_INK, textAlign: 'center', padding: '4px 12px', borderRadius: 4, fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+            title="전체 7단계 보기"
+            className="ce-step-nav-trigger"
+          >
+            {stepLabel}
+            <span style={{ fontSize: 14, color: _INTRO_INK, opacity: 1, transform: showStepNav ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>▾</span>
+          </button>
+          {StepNavComponent && <StepNavComponent open={showStepNav} onClose={() => setShowStepNav(false)} currentKey={workbookKey} />}
+        </div>
+        <button
+          disabled
+          style={{ padding: '8px 14px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: _INTRO_INK, color: '#fff', opacity: 0.4, cursor: 'not-allowed' }}
+          title="작성을 시작하면 활성화됩니다"
+        >
+          저장(.doc)
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const IntroPage = ({
+  workbookKey, stepLabel, title, subtitle,
+  flow, flowTitle, prerequisites,
+  onStart, helpModal, extraContent, StepNavComponent,
+}) => (
+  <div style={{ minHeight: '100vh', background: _INTRO_PAPER, padding: 24, fontFamily: _INTRO_FONT, color: _INTRO_INK }}>
+    {helpModal}
+    <div style={{ maxWidth: 1350, width: '100%', margin: '0 auto' }}>
+      <IntroStickyHeader workbookKey={workbookKey} stepLabel={stepLabel} StepNavComponent={StepNavComponent} />
+
+      <div style={{ background: '#fff', borderRadius: 14, padding: 32, border: `1px solid ${_INTRO_MUTE}33`, marginBottom: 16 }}>
+        <BrandHero />
+        <div style={{ borderTop: `1px solid ${_INTRO_MUTE}33`, margin: '24px 0 32px' }} />
+
+        <p style={{ fontSize: 14, letterSpacing: 4, color: _INTRO_MUTE, textAlign: 'center', margin: 0, marginBottom: 12, fontWeight: 500 }}>{stepLabel}</p>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: _INTRO_INK, textAlign: 'center', margin: 0, marginBottom: 4, lineHeight: 1.35 }}>{title}</h1>
+        {subtitle && (
+          <p style={{ fontSize: 15, color: _INTRO_MUTE, textAlign: 'center', marginTop: 0, marginBottom: 32, lineHeight: 1.6 }}>{subtitle}</p>
+        )}
+
+        <IntroFlowCard flow={flow} flowTitle={flowTitle} />
+        <IntroPrerequisites items={prerequisites} />
+        {extraContent}
+        <IntroCopyright />
+        <IntroCTA onClick={onStart} />
+      </div>
+
+      <IntroFooterCopyright />
+    </div>
+  </div>
+);
+// ════════════════════════════════════════════════════════════
 
 
 // ════════════════════════════════════════════════════════════════
@@ -244,6 +783,7 @@ const WORKBOOK_LINKS = { career_roadmap: { label: 'STEP 0 · 취업준비 진단
   career_description: { label: 'STEP 3 · 경력기술서 작성', url: 'https://www.latpeed.com/products/YmTqC' },
   interview_new:      { label: 'STEP 5 · 신입 면접 준비', url: 'https://www.latpeed.com/products/wUjfn' },
   interview_career:   { label: 'STEP 5 · 경력 면접 준비', url: 'https://www.latpeed.com/products/vJAeZ' },
+  interview_answer_guide: { label: 'STEP 5 · 면접 유형별 답변 전략', url: 'https://www.latpeed.com/products/O-KKc' },
 };
 
 const RelatedWorkbook = ({ id, hint }) => {
@@ -292,7 +832,7 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [expandedAction, setExpandedAction] = useState(0);
 
-  const css = { wrap:{fontFamily:"'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif",maxWidth:900,margin:"0 auto",padding:"0 16px",color:COLORS.accent} };
+  const css = { wrap:{fontFamily:"'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif",maxWidth: 1350,margin:"0 auto",padding:"0 16px",color:COLORS.accent} };
 
   const selectOpt = (qid, val) => {
     const newAns = { ...ans, [qid]: val };
@@ -318,28 +858,29 @@ export default function App() {
       { step: '3', inline: true, label: '', items: [
         { key: 'resume', label: '이력서 작성' },
         { key: 'career_description', label: '경력기술서 작성' },
-        { directUrl: 'https://www.latpeed.com/products/LimF9', label: '이직 컨설팅' },
+        { directUrl: MENTORING_URLS.career_consulting, label: '이직 컨설팅' },
       ]},
-      { step: '4', label: '자소서 작성', expandable: true, items: [
+      { step: '4', label: '', expandable: true, items: [
         { key: 'motivation', label: '지원동기 작성' },
         { key: 'jobcompetency', label: '직무역량 작성' },
         { key: 'personality', label: '성격 장단점 작성' },
         { key: 'goalachievement', label: '목표수립 및 달성 작성' },
         { key: 'careergoal', label: '입사후 포부 작성' },
+        { mentoring: true, label: '자소서 멘토링', directUrl: MENTORING_URLS.cover_letter },
       ]},
-      { step: '4', label: '자소서 멘토링', directUrl: 'https://www.latpeed.com/products/fKnUV' },
-      { step: '5', inline: true, label: '', items: [
+      { step: '5', label: '', expandable: true, items: [
+        { key: 'interview_answer_guide', label: '면접 유형별 답변 전략' },
         { key: 'self_introduction', label: '1분 자기소개 준비' },
         { key: 'interview_new', label: '신입 면접 준비' },
         { key: 'interview_career', label: '경력 면접 준비' },
-        { directUrl: 'https://www.latpeed.com/products/tZ5xw', label: '면접 멘토링' },
+        { mentoring: true, label: '면접 멘토링', directUrl: MENTORING_URLS.interview },
       ]},
     ];
     
     // 추가 서비스 (별도 섹션)
     const extraServices = [
-      { label: 'CareerEngineer 전자책 / 멘토링', url: 'https://www.latpeed.com/spaces/0/stores/collections/68459e30db90f1ebed56226f' },
-      { label: 'CareerEngineer 1-Hour 1:1 취업컨설팅', url: 'https://www.latpeed.com/products/S92cP' },
+      { label: 'CareerEngineer 전자책 / 멘토링', url: 'https://www.latpeed.com/stores/eqxhZ/collections/68459e30db90f1ebed56226f' },
+      { label: 'CareerEngineer 1-Hour 1:1 취업컨설팅', url: MENTORING_URLS.consulting },
       { label: 'CareerEngineer 카카오톡 상담', url: 'https://open.kakao.com/me/careerengineer' },
     ];
     
@@ -356,7 +897,7 @@ export default function App() {
           borderRadius: RADIUS.base,
           border: `1px solid ${COLORS.border}`,
           boxShadow: '0 12px 32px rgba(14, 39, 80, 0.18)',
-          minWidth: 720, maxWidth: 920,
+          minWidth: 1100, maxWidth: 1330,
           maxHeight: '70vh', overflowY: 'auto',
           padding: SPACING.sm,
         }}>
@@ -367,39 +908,61 @@ export default function App() {
                 const isCurrent = g.items.some(it => it.key === currentKey);
                 return (
                   <div key={gi} style={{
+                    position: 'relative',
                     padding: `10px ${SPACING.base}px`,
+                    paddingLeft: g.label ? SPACING.base : 84,
                     borderRadius: 6,
                     border: `1px solid ${isCurrent ? COLORS.accent2 : COLORS.border}`,
                     background: isCurrent ? '#FBFAF6' : COLORS.white,
                   }}>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, minHeight: 24 }}>
+                    {!g.label && (
                       <span style={{
-                        position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
+                        position: 'absolute', left: SPACING.base, top: 14,
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                         width: 64, height: 24, borderRadius: 4,
                         background: isCurrent ? COLORS.accent : COLORS.bgAlt,
                         color: isCurrent ? COLORS.white : COLORS.sub,
                         fontSize: FONT.size.xs, fontWeight: FONT.weight.bold, fontFamily: FONT.family,
                       }}>STEP {g.step}</span>
-                      <span style={{ fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold, color: COLORS.accent }}>{g.label}</span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
-                      {g.items.map(it => {
+                    )}
+                    {g.label && (
+                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, minHeight: 24 }}>
+                        <span style={{
+                          position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)',
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 64, height: 24, borderRadius: 4,
+                          background: isCurrent ? COLORS.accent : COLORS.bgAlt,
+                          color: isCurrent ? COLORS.white : COLORS.sub,
+                          fontSize: FONT.size.xs, fontWeight: FONT.weight.bold, fontFamily: FONT.family,
+                        }}>STEP {g.step}</span>
+                        <span style={{ fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold, color: COLORS.accent }}>{g.label}</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'center', columnGap: 8, rowGap: 6 }}>
+                      {g.items.map((it, ii) => {
                         const isCurrentItem = it.key === currentKey;
                         const link = it.directUrl ? { url: it.directUrl } : WORKBOOK_LINKS[it.key];
                         if (!link) return null;
-                        if (isCurrentItem) {
-                          return (
-                            <span key={it.key} style={{ fontSize: FONT.size.sm, fontWeight: FONT.weight.bold, color: COLORS.accent, padding: '4px 0' }}>
-                              · {it.label} <span style={{ fontSize: FONT.size.xs, color: COLORS.accent2, fontWeight: FONT.weight.semibold }}>(현재)</span>
-                            </span>
-                          );
-                        }
+                        const isMentoring = it.mentoring === true;
+                        const lineBreak = (isMentoring && ii > 0 && !g.items[ii - 1].mentoring);
+                        const showSeparator = ii < g.items.length - 1 && (g.items[ii + 1].mentoring === isMentoring);
                         return (
-                          <a key={it.key} href={link.url} target="_blank" rel="noopener noreferrer"
-                            style={{ fontSize: FONT.size.sm, color: COLORS.accent2, textDecoration: 'underline', textUnderlineOffset: 2, padding: '4px 0' }}>
-                            · {it.label}
-                          </a>
+                          <React.Fragment key={it.key || it.label}>
+                            {lineBreak && <span style={{ flexBasis: '100%', height: 0 }} />}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                              {isCurrentItem ? (
+                                <span style={{ fontSize: FONT.size.sm, fontWeight: FONT.weight.bold, color: COLORS.accent }}>
+                                  {it.label} <span style={{ fontSize: FONT.size.xs, color: COLORS.accent2, fontWeight: FONT.weight.semibold }}>(현재)</span>
+                                </span>
+                              ) : (
+                                <a href={link.url} target="_blank" rel="noopener noreferrer"
+                                  style={{ fontSize: FONT.size.sm, color: COLORS.accent2, textDecoration: 'underline', textUnderlineOffset: 2, fontWeight: isMentoring ? FONT.weight.semibold : FONT.weight.medium }}>
+                                  {it.label}
+                                </a>
+                              )}
+                              {showSeparator && <span style={{ color: COLORS.sub, fontSize: FONT.size.xs }}>/</span>}
+                            </span>
+                          </React.Fragment>
                         );
                       })}
                     </div>
@@ -544,77 +1107,33 @@ export default function App() {
   const reset = () => { setPage("welcome"); setQi(0); setAns({}); setResult(null); setExpandedAction(0); };
 
   // WELCOME
-  if (page === "welcome") return (
-    <div style={css.wrap}>
-      <FirstVisitModal open={showHelp} onClose={() => setShowHelp(false)} title="취업준비 로드맵 사용 안내" steps={[
-        '7개 질문에 답하면 <strong>지금 당장 해야 할 일</strong>이 추천됩니다.',
-        '각 질문은 본인의 현재 상황과 가장 가까운 답변을 고르면 됩니다.',
-        '결과 화면에서 추천된 액션을 <strong>순서대로 실행</strong>하세요.',
-        '진단은 언제든 다시 받을 수 있으니 정직하게 답변하세요.',
-      ]} />
-      {/* sticky 헤더 (가이드 PART 7-6) */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#F2F1EC', borderBottom: `1px solid #6E7A8F33`, padding: '12px 16px', marginLeft: -16, marginRight: -16, marginTop: -16, marginBottom: 16, boxShadow: '0 2px 8px rgba(14, 39, 80, 0.12)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-          <CELockupA height={32} />
-          <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
-            <button onClick={() => setShowStepNav(v => !v)} style={{ 
-              background: COLORS.bgAlt, border: 'none', cursor: 'pointer',
-              fontSize: 16, color: COLORS.accent, textAlign: 'center',
-              padding: '4px 12px', borderRadius: 4, fontFamily: 'inherit',
-              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-            }} title="전체 7단계 보기" className="ce-step-nav-trigger">
-              STEP 0 · 취업준비 진단
-              <span style={{ fontSize: 16, color: COLORS.accent, opacity: 1, transform: showStepNav ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>▾</span>
-            </button>
-            <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="career_roadmap" />
-          </div>
-          <button disabled style={{padding: '8px 14px', borderRadius: 8, border: 'none', fontSize: 16, fontWeight: 600, fontFamily: 'inherit', background: COLORS.accent, color: COLORS.white, opacity: 0.4, cursor: 'not-allowed'}} title="진단 완료 후 활성화됩니다">
-            결과 저장
-          </button>
-        </div>
-      </div>
-      {/* ═══ 브랜드 블록 (PART 7-6-1 규격) ═══ */}
-      <div style={{textAlign:"center", padding:"16px 0 16px"}}>
-        {/* CE 락업 — 가이드 PART 1-4-6 인터랙티브 첫 화면 */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-          <CELockupA height={56} />
-        </div>
-        {/* ② 슬로건 — 중간 크기, Bold, accent — 워드마크 아래 */}
-        <p style={{fontSize:18, fontWeight:700, color:COLORS.accent, margin:"8px 0 0"}}>
-          생각하는 힘으로 커리어를 설계하다
-        </p>
-        {/* ③ 브랜드 메시지 — 작은 글씨, Regular, sub — 슬로건 바로 아래, 공백 없이 */}
-        <p style={{fontSize: 16, fontWeight:400, color:COLORS.sub, margin:"4px 0 0", lineHeight:1.6}}>
-          취업이 막막하던 사람도 CareerEngineer의 질문에 답하다 보면,<br/>
-          생각하는 힘이 길러집니다. 일하는 방식이 달라집니다. 채용담당자가 먼저 알아봅니다.
-        </p>
-      </div>
-
-      {/* ═══ 구분선 ═══ */}
-      <div style={{borderTop:`1px solid ${COLORS.border}`, margin:"24px 0 32px"}}/>
-
-      {/* ═══ 앱 제목 ═══ */}
-      <div style={{textAlign:"center", padding:"0 0 32px"}}>
-        <div style={{fontSize: 16, letterSpacing:4, color:COLORS.sub, marginBottom:12, fontWeight:500}}>STEP 0 · 진단</div>
-        <h1 style={{fontSize:26, fontWeight:700, color:COLORS.accent, lineHeight:1.35, margin:"0 0 12px"}}>취업 준비,<br/>지금 뭘 해야 할까?</h1>
-        <p style={{fontSize: 16, color:COLORS.sub, lineHeight:1.7, margin:"0 0 36px"}}>7개 질문에 답하면<br/>지금 당장 해야 할 일을 알려드립니다</p>
-        <div onClick={()=>setPage("quiz")} style={{display:"inline-block", background:COLORS.accent, color:"#fff", borderRadius:14, padding:"16px 48px", cursor:"pointer", fontSize: 16, fontWeight:600}}>
-          시작하기
-        </div>
-      </div>
-      <div style={{textAlign:"center", padding:"24px 0", borderTop:`1px solid ${COLORS.border}`}}>
-        <p style={{fontSize: 16, color:COLORS.sub, lineHeight:1.6, margin:0}}>소요시간 약 2분<br/>내 상황을 진단하고 맞춤 액션을 받아보세요</p>
-      </div>
-      <div style={{marginTop:24, padding:"16px 0", borderTop:`1px solid ${COLORS.border}`}}>
-        <p style={{fontSize: 16, color:COLORS.sub, textAlign:"center", lineHeight:1.6, margin:"0 0 8px", fontWeight:600}}>
-          © 2026 CareerEngineer. All Rights Reserved.
-        </p>
-        <p style={{fontSize: 16, color:"#0E2750", textAlign:"center", lineHeight:1.6, margin:0}}>
-          저작권법에 의하여 보호받는 저작물이므로 무단 전재와 무단 복제를 금합니다. 이 자료는 구매하신 분의 취업을 위한 개인 학습 용도로 자유롭게 활용하실 수 있으나, 자료의 전부 또는 일부를 다른 사람에게 공유하거나, 복제·재판매·재배포하는 것은 금지되어 있습니다. <strong>이를 위반할 경우 관련 법률에 따라 민·형사상 책임을 질 수 있습니다.</strong>
-        </p>
-      </div>
-      <StickyFooter />
-    </div>
+      if (page === "welcome") return (
+    <IntroPage
+      workbookKey='career_roadmap'
+      StepNavComponent={StepNavigatorDropdown}
+      stepLabel='STEP 0 · 진단'
+      title='취업 준비, 지금 뭘 해야 할까?'
+      subtitle='7개 질문에 답하면 지금 당장 해야 할 일을 알려드립니다'
+      flow={[
+          { label: '질문 1', desc: '어떤 상황인가요? — 신입·이직·직무전환·대학원졸' },
+          { label: '질문 2', desc: '지원할 직무가 정해졌나요?' },
+          { label: '질문 3', desc: '채용공고를 분석해봤나요?' },
+          { label: '질문 4', desc: '내 경험을 정리해봤나요?' },
+          { label: '질문 5', desc: '자소서를 써봤나요?' },
+          { label: '질문 6', desc: '이력서가 준비되어 있나요?' },
+          { label: '질문 7', desc: '면접 준비는 어느 정도 했나요?' },
+        ]}
+      flowTitle={'진단 흐름 (약 2분)'}
+      prerequisites={undefined}
+      relatedWorkbooks={undefined}
+      helpModal={<FirstVisitModal open={showHelp} onClose={() => setShowHelp(false)} title='취업준비 로드맵 사용 안내' steps={[
+          '7개 질문에 답하면 <strong>지금 당장 해야 할 일</strong>이 추천됩니다.',
+          '각 질문은 본인의 현재 상황과 가장 가까운 답변을 고르면 됩니다.',
+          '결과 화면에서 추천된 액션을 <strong>순서대로 실행</strong>하세요.',
+          '진단은 언제든 다시 받을 수 있으니 정직하게 답변하세요.',
+        ]} />}
+      onStart={() => { setPage("quiz"); }}
+    />
   );
 
   // QUIZ
@@ -642,7 +1161,6 @@ export default function App() {
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",padding:"20px 0 16px",gap:10}}>
-          <button onClick={()=>{if(qi>0)setQi(qi-1);else setPage("welcome");}} style={{cursor:"pointer",fontSize:16,color:COLORS.sub,padding:"4px 8px",border:"none",background:"none"}}>이전</button>
           <div style={{flex:1,height:4,background:COLORS.border,borderRadius:2}}>
             <div style={{height:4,background:COLORS.accent,borderRadius:2,width:`${((qi+1)/QS.length)*100}%`,transition:"width .3s"}}/>
           </div>
@@ -663,6 +1181,13 @@ export default function App() {
               </div>
             );
           })}
+        </div>
+
+        <div style={{display:"flex",justifyContent:"flex-start",padding:"0 0 24px"}}>
+          <button onClick={()=>{if(qi>0)setQi(qi-1);else setPage("welcome");}}
+            style={{cursor:"pointer",fontSize:16,color:COLORS.accent,padding:"12px 24px",border:`1px solid ${COLORS.border}`,background:"transparent",borderRadius:10,fontWeight:500}}>
+            이전
+          </button>
         </div>
       </div>
     );
@@ -685,9 +1210,61 @@ export default function App() {
           </div>
         </div>
 
+        {/* ═══ 지금 당신의 상태 (현재 위치 진단) ═══ */}
+        {result.stageGuide && result.stageGuide.situation && (
+          <div style={{ background: '#F2F1EC', borderRadius: 14, padding: '18px 20px', margin: '16px 0', borderLeft: `4px solid ${COLORS.accent}` }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent, margin: 0, marginBottom: 10, letterSpacing: 0.3 }}>지금 당신의 상태</p>
+            <p style={{ fontSize: 16, color: COLORS.accent, margin: 0, lineHeight: 1.75 }}>{result.stageGuide.situation}</p>
+          </div>
+        )}
+
+        {/* ═══ 당신만 그런 게 아닙니다 (흔한 고민) ═══ */}
+        {result.stageGuide && result.stageGuide.concerns && result.stageGuide.concerns.length > 0 && (
+          <div style={{ background: '#FBFAF6', border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: '18px 20px', margin: '16px 0' }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent, margin: 0, marginBottom: 4 }}>당신만 그런 게 아닙니다</p>
+            <p style={{ fontSize: 16, color: COLORS.sub, margin: 0, marginBottom: 12, lineHeight: 1.6 }}>이 단계에서 지원자들이 가장 많이 호소하는 고민입니다.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {result.stageGuide.concerns.map((concern, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{ color: COLORS.accent2, fontWeight: 700, flexShrink: 0, fontSize: 16, lineHeight: 1.6 }}>•</span>
+                  <span style={{ fontSize: 16, color: COLORS.accent, lineHeight: 1.65 }}>"{concern}"</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 16, color: COLORS.sub, margin: 0, marginTop: 12, lineHeight: 1.6, fontStyle: 'italic' }}>이 고민은 정상입니다. 단계의 본질적 어려움이지, 당신의 부족함이 아닙니다.</p>
+          </div>
+        )}
+
+        {/* ═══ 셀프 체크포인트 ═══ */}
+        {result.stageGuide && result.stageGuide.selfCheck && result.stageGuide.selfCheck.length > 0 && (
+          <div style={{ background: '#fff', border: `1px solid ${COLORS.border}`, borderRadius: 14, padding: '18px 20px', margin: '16px 0' }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent, margin: 0, marginBottom: 4 }}>지금 어디까지 됐나? 셀프 체크</p>
+            <p style={{ fontSize: 16, color: COLORS.sub, margin: 0, marginBottom: 12, lineHeight: 1.6 }}>아래 항목 중 "예"라고 답할 수 있는 것이 몇 개인지 세어보세요.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {result.stageGuide.selfCheck.map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 12px', background: '#FBFAF6', borderRadius: 8 }}>
+                  <span style={{ color: COLORS.accent2, fontWeight: 700, flexShrink: 0, fontSize: 16, minWidth: 18 }}>□</span>
+                  <span style={{ fontSize: 16, color: COLORS.accent, lineHeight: 1.65 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 16, color: COLORS.sub, margin: 0, marginTop: 12, lineHeight: 1.6 }}>모두 "예"가 나오는 시점이 다음 단계로 넘어가도 좋다는 신호입니다.</p>
+          </div>
+        )}
+
+        {/* ═══ 이 단계를 넘으면 (비전) ═══ */}
+        {result.stageGuide && result.stageGuide.vision && (
+          <div style={{ background: 'linear-gradient(135deg, #FBFAF6 0%, #F2F1EC 100%)', border: `1px solid ${COLORS.accent2}33`, borderRadius: 14, padding: '18px 20px', margin: '16px 0' }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent2, margin: 0, marginBottom: 8, letterSpacing: 0.3 }}>이 단계를 넘으면</p>
+            <p style={{ fontSize: 16, color: COLORS.accent, margin: 0, lineHeight: 1.75 }}>{result.stageGuide.vision}</p>
+          </div>
+        )}
+
+
         {/* Immediate Actions */}
         <div style={{margin:"20px 0"}}>
-          <h2 style={{fontSize:16,fontWeight:700,margin:"0 0 12px"}}>지금 당장 하세요</h2>
+          <h2 style={{fontSize:16,fontWeight:700,margin:"0 0 4px"}}>지금 당장 하세요</h2>
+          <p style={{fontSize: 16, color: COLORS.sub, margin: '0 0 12px', lineHeight: 1.6}}>아래 액션을 순서대로 눌러보면 구체적인 방법이 나옵니다.</p>
           {result.now.map((action, i) => {
             const isOpen = expandedAction === i;
             return (
@@ -709,6 +1286,31 @@ export default function App() {
             );
           })}
         </div>
+
+        {/* ═══ 혼자서 할 수 있는 것 (selfHelp) ═══ */}
+        {result.stageGuide && result.stageGuide.selfHelp && result.stageGuide.selfHelp.length > 0 && (
+          <div style={{ background: '#fff', border: `1px solid ${COLORS.accent2}66`, borderRadius: 14, padding: '18px 20px', margin: '20px 0' }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent, margin: 0, marginBottom: 4 }}>혼자서 충분히 할 수 있는 것</p>
+            <p style={{ fontSize: 16, color: COLORS.sub, margin: 0, marginBottom: 14, lineHeight: 1.6 }}>아래 방법들은 별다른 도움 없이 오늘부터 시작할 수 있습니다.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {result.stageGuide.selfHelp.map((tip, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{ color: COLORS.accent2, fontWeight: 700, flexShrink: 0, fontSize: 16, minWidth: 22 }}>{i + 1}.</span>
+                  <span style={{ fontSize: 16, color: COLORS.accent, lineHeight: 1.7 }}>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ 도움이 필요한 시점 (whenToAskHelp) ═══ */}
+        {result.stageGuide && result.stageGuide.whenToAskHelp && (
+          <div style={{ background: '#F2F1EC', borderRadius: 14, padding: '16px 20px', margin: '16px 0' }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent, margin: 0, marginBottom: 8 }}>이럴 때는 도움이 필요할 수 있습니다</p>
+            <p style={{ fontSize: 16, color: COLORS.accent, margin: 0, lineHeight: 1.7 }}>{result.stageGuide.whenToAskHelp}</p>
+          </div>
+        )}
+
 
         {/* Relevant Docs */}
         {result.docs.length > 0 && (
@@ -750,47 +1352,50 @@ export default function App() {
 
         {/* ═══ 관련 자료 + 멘토링 안내 (PART 6-4, 7-8) ═══ */}
         <div style={{ background: '#F2F1EC', border: '1px solid rgba(27, 58, 107, 0.2)', borderRadius: 10, padding: 16, marginTop: 24, marginBottom: 16 }}>
-          <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 8 }}>INFO · 다음 STEP 안내</p>
+          <p style={{ fontSize: 16, fontWeight: 600, color: '#1B3A6B', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 8 }}>INFO · 다음 STEP 안내</p>
           <p style={{ fontSize: 16, color: '#0E2750', margin: 0, lineHeight: 1.6 }}>진단 결과에서 추천한 액션을 순서대로 실행하세요</p>
         </div>
 
-        <div style={{ background: '#FBFAF6', borderRadius: 10, padding: 16, marginBottom: 16 }}>
-          <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0, marginBottom: 8 }}>함께 보면 좋은 자료</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'flex', gap: 8, padding: 8, background: '#fff', borderRadius: 6, alignItems: 'flex-start' }}>
-              <div style={{ width: 4, background: '#0E2750', borderRadius: 2, alignSelf: 'stretch', minHeight: 28 }} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>채용공고 분석 & 직무분석 가이드</p>
-                <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 2, lineHeight: 1.6 }}>방향 설정 후 직무를 구체화</p>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, padding: 8, background: '#fff', borderRadius: 6, alignItems: 'flex-start' }}>
-              <div style={{ width: 4, background: '#0E2750', borderRadius: 2, alignSelf: 'stretch', minHeight: 28 }} />
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>경험정리 가이드 & 워크북</p>
-                <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 2, lineHeight: 1.6 }}>진단 결과에 따른 다음 단계 실행</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <RelatedWorkbookList
+          title="다음 단계 — STEP별 자료"
+          items={[
+            { id: 'job_analysis', hint: 'STEP 1 · 채용공고와 직무 분석으로 시작' },
+            { id: 'experience', hint: 'STEP 2 · 경험 발굴 인벤토리' },
+            { id: 'resume', hint: 'STEP 3 · 이력서 (공통)' },
+            { id: 'career_description', hint: 'STEP 3 · 경력기술서 (경력직)' },
+            { id: 'motivation', hint: 'STEP 4 · 자소서 5대 항목' },
+            { id: 'self_introduction', hint: 'STEP 5 · 1분 자기소개' },
+            { id: 'interview_answer_guide', hint: 'STEP 5 · 면접 유형별 답변 전략 및 실전 대응 가이드' },
+            { id: 'interview_new', hint: 'STEP 5 · 신입 면접 워크북' },
+            { id: 'interview_career', hint: 'STEP 5 · 경력 면접 워크북' }
+          ]}
+        />
 
         <div style={{ background: '#FBFAF6', border: '1px solid rgba(168, 133, 63, 0.2)', borderRadius: 10, padding: 16, marginBottom: 16 }}>
           <p style={{ fontSize: 16, fontWeight: 600, color: '#A8853F', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 12, textAlign: 'center' }}>1:1 멘토링 · 컨설팅 안내</p>
           <p style={{ fontSize: 16, color: '#0E2750', margin: 0, marginBottom: 16, lineHeight: 1.6, textAlign: 'center' }}>혼자 막히는 부분이 있다면 시니어 현직자와 1:1로 풀어보세요. 멘토링 수강 시 관련 가이드워크북이 무료 제공됩니다.</p>
           <div style={{ display: 'grid', gap: 8 }}>
-            <a href="https://www.latpeed.com/products/S92cP" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
+            <a href={MENTORING_URLS.consulting} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center', transition: 'opacity 150ms ease'}}
+  onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
+  onMouseLeave={e => e.currentTarget.style.opacity = 1}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>CareerEngineer 1-Hour 1:1 취업컨설팅</p>
               <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>방향 설정이 막막하다면 — 자소서·이력서·면접 중 핵심 고민 1시간 집중. 기초 전자책 5종 무료 제공.</p>
             </a>
-            <a href="https://www.latpeed.com/products/fKnUV" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
+            <a href={MENTORING_URLS.cover_letter} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center', transition: 'opacity 150ms ease'}}
+  onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
+  onMouseLeave={e => e.currentTarget.style.opacity = 1}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>자소서 멘토링 프로그램</p>
               <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>서류 합격이 어렵다면 — 채용담당자 관점 첨삭. 자소서 5종 + 경험정리 가이드 무료 제공.</p>
             </a>
-            <a href="https://www.latpeed.com/products/tZ5xw" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
+            <a href={MENTORING_URLS.interview} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center', transition: 'opacity 150ms ease'}}
+  onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
+  onMouseLeave={e => e.currentTarget.style.opacity = 1}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>면접 멘토링 프로그램</p>
               <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>실전 답변이 안 나온다면 — 면접관 관점 모의면접. 1분 자기소개 + 면접 신입/경력 가이드 무료 제공.</p>
             </a>
-            <a href="https://www.latpeed.com/products/LimF9" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center' }}>
+            <a href={MENTORING_URLS.career_consulting} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center', transition: 'opacity 150ms ease'}}
+  onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
+  onMouseLeave={e => e.currentTarget.style.opacity = 1}>
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>이직 컨설팅 (경력직)</p>
               <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>이직 결정이 어렵다면 — 결정부터 면접까지 1:1 동행. 경력기술서 + 이력서 + 면접 경력직 가이드 무료 제공.</p>
             </a>
@@ -807,11 +1412,37 @@ export default function App() {
             lines.push(`페르소나: ${persona}`);
             lines.push(`\n━━━ 가장 약한 단계 ━━━`);
             lines.push(`STEP ${result.weakest.step}. ${result.weakest.name}`);
+            if (result.stageGuide) {
+              if (result.stageGuide.situation) {
+                lines.push(`\n━━━ 지금 당신의 상태 ━━━`);
+                lines.push(result.stageGuide.situation);
+              }
+              if (result.stageGuide.concerns && result.stageGuide.concerns.length > 0) {
+                lines.push(`\n━━━ 당신만 그런 게 아닙니다 (이 단계의 흔한 고민) ━━━`);
+                result.stageGuide.concerns.forEach(c => lines.push(`• "${c}"`));
+              }
+              if (result.stageGuide.selfCheck && result.stageGuide.selfCheck.length > 0) {
+                lines.push(`\n━━━ 셀프 체크포인트 ━━━`);
+                result.stageGuide.selfCheck.forEach(c => lines.push(`□ ${c}`));
+              }
+              if (result.stageGuide.vision) {
+                lines.push(`\n━━━ 이 단계를 넘으면 ━━━`);
+                lines.push(result.stageGuide.vision);
+              }
+            }
             lines.push(`\n━━━ 지금 해야 할 일 ━━━`);
             result.now.forEach((a, i) => {
               lines.push(`\n${i+1}. ${a.text}`);
               if (a.detail) lines.push(`   ${a.detail}`);
             });
+            if (result.stageGuide && result.stageGuide.selfHelp && result.stageGuide.selfHelp.length > 0) {
+              lines.push(`\n━━━ 혼자서 충분히 할 수 있는 것 ━━━`);
+              result.stageGuide.selfHelp.forEach((tip, i) => lines.push(`${i + 1}. ${tip}`));
+            }
+            if (result.stageGuide && result.stageGuide.whenToAskHelp) {
+              lines.push(`\n━━━ 이럴 때는 도움이 필요할 수 있습니다 ━━━`);
+              lines.push(result.stageGuide.whenToAskHelp);
+            }
             if (result.docs.length > 0) {
               lines.push(`\n━━━ 이 단계에서 도움되는 자료 ━━━`);
               result.docs.forEach(d => lines.push(`• ${d.n}${d.u ? ` (${d.u})` : ''}`));
@@ -819,11 +1450,11 @@ export default function App() {
             lines.push(`\n━━━ 앞으로의 큰 그림 ━━━`);
             const statusKr = { done: '완료', partial: '보완 필요', todo: '아직 안 함', locked: '앞 단계 먼저' };
             result.remaining.forEach(r => lines.push(`STEP ${r.step}. ${r.name} - ${statusKr[r.status] || r.status}`));
-            lines.push(`\n━━━ 1:1 멘토링 · 컨설팅 안내 ━━━`);
-            lines.push(`• CareerEngineer 1-Hour 1:1 취업컨설팅: https://www.latpeed.com/products/S92cP`);
+            lines.push(`\n━━━ 1:1 멘토링 · 컨설팅 안내 (필요할 때만) ━━━`);
+            lines.push(`• 1-Hour 1:1 취업컨설팅: https://www.latpeed.com/products/S92cP`);
             lines.push(`• 자소서 멘토링: https://www.latpeed.com/products/fKnUV`);
             lines.push(`• 면접 멘토링: https://www.latpeed.com/products/tZ5xw`);
-            lines.push(`• 이직 컨설팅: https://www.latpeed.com/products/LimF9`);
+            if (who === 'career') lines.push(`• 이직 컨설팅: https://www.latpeed.com/products/LimF9`);
             lines.push(`\n${'='.repeat(60)}`);
             lines.push(`© 2026 CareerEngineer. All Rights Reserved.`);
             const h = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>취업준비 진단 결과</title><style>body{font-family:'맑은 고딕',sans-serif;line-height:1.7;padding:40px;white-space:pre-wrap;color:#0E2750}</style></head><body>${lines.join('\n')}</body></html>`;
@@ -837,9 +1468,18 @@ export default function App() {
           }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,background:COLORS.accent,color:COLORS.white,cursor:"pointer",fontSize: 16,fontWeight:600}}>
             결과 저장 (.doc)
           </div>
+          <div onClick={() => { setPage('quiz'); setQi(QS.length - 1); }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,border:`1px solid ${COLORS.border}`,cursor:"pointer",fontSize: 16,color:COLORS.accent}}>
+            이전
+          </div>
           <div onClick={reset} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,border:`1px solid ${COLORS.border}`,cursor:"pointer",fontSize: 16,color:COLORS.sub}}>
             다시 진단하기
           </div>
+        </div>
+
+        <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid rgba(110, 122, 143, 0.2)' }}>
+          <p style={{ fontSize: 14, color: '#6E7A8F', textAlign: 'center', lineHeight: 1.6, margin: 0 }}>
+            © 2026 CareerEngineer. All Rights Reserved. 저작권법에 의하여 보호받는 저작물이므로 무단 전재와 무단 복제를 금합니다. 이 자료는 구매하신 분의 취업을 위한 개인 학습 용도로 자유롭게 활용하실 수 있으나, 자료의 전부 또는 일부를 다른 사람에게 공유하거나, 복제·재판매·재배포하는 것은 금지되어 있습니다. <strong>이를 위반할 경우 관련 법률에 따라 민·형사상 책임을 질 수 있습니다.</strong>
+          </p>
         </div>
         <StickyFooter />
       </div>

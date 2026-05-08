@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 
 
 // 멘토링·컨설팅 URL 상수 (작업 18: URL 상수화)
@@ -493,11 +493,11 @@ function analyze(ans) {
   // STEP 3: 이력서 (경험 정리 다음)
   if (levels.exp >= 1 && levels.resume === 0) {
     addAction(3, { text: who === "career" ? "경력기술서를 포함한 이력서를 작성하세요" : who === "grad" ? "학술 CV를 기업 이력서로 변환하세요" : "이력서를 만들고 PDF로 변환하세요", detail: who === "career" ? "경력 요약 \u2192 경력사항(역순) \u2192 핵심성과 \u2192 스킬 \u2192 학력 순서. 최근 경력일수록 상세하게 씁니다. 이력서가 자소서보다 먼저인 이유: 이력서에서 정리한 성과·키워드가 자소서 직무역량 항목의 뼈대가 됩니다." : who === "grad" ? "논문 목록은 핵심 1~2개만 남기고, 연구의 비즈니스 임팩트를 강조하세요. 학술 용어를 쉬운 말로 바꾸세요. 이력서를 먼저 정리하면, 자소서에서 어떤 경험을 어디에 배치할지가 명확해집니다." : "인적사항 \u2192 한줄소개(직무상세내용 키워드 반영) \u2192 학력 \u2192 경험(성과 중심) \u2192 스킬 순서. 파일명은 '이름_직무_이력서.pdf'. 이력서를 먼저 만들면, 자소서 5대 항목에 어떤 경험을 어디에 쓸지가 자동으로 보입니다." });
-    docs.push({ n: "이력서 작성", u: "https://www.latpeed.com/products/k6z-h" });
-    if (who === "career") docs.push({ n: "경력기술서 작성", u: "https://www.latpeed.com/products/YmTqC" });
+    docs.push({ n: "이력서 작성", u: "https://www.latpeed.com/products/F8JkO" });
+    if (who === "career") docs.push({ n: "경력기술서 작성", u: "https://www.latpeed.com/products/AkBH-" });
   } else if (levels.resume === 1) {
     addAction(3, { text: "이력서를 지원 직무에 맞게 커스터마이즈하세요", detail: "한줄소개에 직무상세내용 키워드를 반영하고, 경험을 해당 직무 관점으로 재기술하세요. 모든 회사에 같은 이력서를 보내면 안 됩니다." });
-    docs.push({ n: "이력서 작성", u: "https://www.latpeed.com/products/k6z-h" });
+    docs.push({ n: "이력서 작성", u: "https://www.latpeed.com/products/F8JkO" });
   }
 
   // STEP 4: 자소서 (이력서 다음)
@@ -525,9 +525,9 @@ function analyze(ans) {
     addAction(5, { text: "자소서 기반 예상 질문 20개를 뽑으세요", detail: "자소서 각 항목에서 면접관이 물을 수 있는 질문을 뽑고, 각각 STAR(상황-과제-행동-결과) 구조로 답변을 정리하세요. 반드시 소리 내어 연습하세요." });
     if (who === "career") addAction(5, { text: "이직 고유 질문을 준비하세요", detail: "퇴사 사유(30초 이내, 긍정적으로), 연봉 기대치(업계 조사 기반 범위), 전 직장 성과(STAR-I 3개), 인수인계 기간을 미리 정리하세요." });
     if (who === "switch") addAction(5, { text: "'왜 전환하는가'를 1분 이내로 말하는 연습을 하세요", detail: "직무 전환 면접에서는 거의 모든 질문이 이것과 연결됩니다. 기존 경험의 강점 + 새 직무 준비 과정 + 기여 방향을 자연스럽게 연결하세요." });
-    docs.push({ n: "신입 면접 준비", u: "https://www.latpeed.com/products/wUjfn" });
+    docs.push({ n: "신입 면접 준비", u: "https://www.latpeed.com/products/H7UHo" });
     docs.push({ n: "면접 멘토링", u: MENTORING_URLS.interview });
-    if (who === "career" || who === "switch") docs.push({ n: "경력 면접 준비", u: "https://www.latpeed.com/products/vJAeZ" });
+    if (who === "career" || who === "switch") docs.push({ n: "경력 면접 준비", u: "https://www.latpeed.com/products/j3RfY" });
   } else if (levels.interview === 1) {
     addAction(5, { text: "답변을 정리하고 소리 내어 연습하세요", detail: "머릿속으로 생각하는 것과 입으로 말하는 것은 완전히 다릅니다. 최소 3번, 가능하면 누군가에게 들려주면서 연습하세요. 키워드만 외우고 자연스럽게 말하는 것이 목표입니다." });
     docs.push({ n: "면접 멘토링", u: MENTORING_URLS.interview });

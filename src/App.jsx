@@ -1407,64 +1407,107 @@ export default function App() {
           <div onClick={() => {
             const today = new Date().toISOString().slice(0,10);
             const persona = who === 'newbie' ? '신입' : who === 'career' ? '경력' : who === 'switch' ? '이직' : '미선택';
-            const lines = ['CareerEngineer 취업준비 진단 결과', '='.repeat(60)];
-            lines.push(`진단일: ${today}`);
-            lines.push(`페르소나: ${persona}`);
-            lines.push(`\n━━━ 가장 약한 단계 ━━━`);
-            lines.push(`STEP ${result.weakest.step}. ${result.weakest.name}`);
-            if (result.stageGuide) {
-              if (result.stageGuide.situation) {
-                lines.push(`\n━━━ 지금 당신의 상태 ━━━`);
-                lines.push(result.stageGuide.situation);
-              }
-              if (result.stageGuide.concerns && result.stageGuide.concerns.length > 0) {
-                lines.push(`\n━━━ 당신만 그런 게 아닙니다 (이 단계의 흔한 고민) ━━━`);
-                result.stageGuide.concerns.forEach(c => lines.push(`• "${c}"`));
-              }
-              if (result.stageGuide.selfCheck && result.stageGuide.selfCheck.length > 0) {
-                lines.push(`\n━━━ 셀프 체크포인트 ━━━`);
-                result.stageGuide.selfCheck.forEach(c => lines.push(`□ ${c}`));
-              }
-              if (result.stageGuide.vision) {
-                lines.push(`\n━━━ 이 단계를 넘으면 ━━━`);
-                lines.push(result.stageGuide.vision);
-              }
-            }
-            lines.push(`\n━━━ 지금 해야 할 일 ━━━`);
-            result.now.forEach((a, i) => {
-              lines.push(`\n${i+1}. ${a.text}`);
-              if (a.detail) lines.push(`   ${a.detail}`);
-            });
-            if (result.stageGuide && result.stageGuide.selfHelp && result.stageGuide.selfHelp.length > 0) {
-              lines.push(`\n━━━ 혼자서 충분히 할 수 있는 것 ━━━`);
-              result.stageGuide.selfHelp.forEach((tip, i) => lines.push(`${i + 1}. ${tip}`));
-            }
-            if (result.stageGuide && result.stageGuide.whenToAskHelp) {
-              lines.push(`\n━━━ 이럴 때는 도움이 필요할 수 있습니다 ━━━`);
-              lines.push(result.stageGuide.whenToAskHelp);
-            }
-            if (result.docs.length > 0) {
-              lines.push(`\n━━━ 이 단계에서 도움되는 자료 ━━━`);
-              result.docs.forEach(d => lines.push(`• ${d.n}${d.u ? ` (${d.u})` : ''}`));
-            }
-            lines.push(`\n━━━ 앞으로의 큰 그림 ━━━`);
+            const esc = (s) => (s || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const br = (s) => esc(s).replace(/\n/g, '<br/>');
             const statusKr = { done: '완료', partial: '보완 필요', todo: '아직 안 함', locked: '앞 단계 먼저' };
-            result.remaining.forEach(r => lines.push(`STEP ${r.step}. ${r.name} - ${statusKr[r.status] || r.status}`));
-            lines.push(`\n━━━ 1:1 멘토링 · 컨설팅 안내 (필요할 때만) ━━━`);
-            lines.push(`• 1-Hour 1:1 취업컨설팅: https://www.latpeed.com/products/S92cP`);
-            lines.push(`• 자소서 멘토링: https://www.latpeed.com/products/fKnUV`);
-            lines.push(`• 면접 멘토링: https://www.latpeed.com/products/tZ5xw`);
-            if (who === 'career') lines.push(`• 이직 컨설팅: https://www.latpeed.com/products/LimF9`);
-            lines.push(`\n${'='.repeat(60)}`);
-            lines.push(`© 2026 CareerEngineer. All Rights Reserved.`);
-            const h = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>취업준비 진단 결과</title><style>body{font-family:'맑은 고딕',sans-serif;line-height:1.7;padding:40px;white-space:pre-wrap;color:#0E2750}</style></head><body>${lines.join('\n')}</body></html>`;
-            const blob = new Blob([h], { type: 'application/msword;charset=utf-8' });
+            const statusColor = { done: '#1B3A6B', partial: '#C9A86A', todo: '#6E7A8F', locked: '#A8A8A8' };
+            
+            // 섹션 헤더
+            const sh = (t) => `<p style="font-size:14pt;font-weight:bold;color:#0E2750;margin:24pt 0 10pt 0;padding-bottom:6pt;border-bottom:2pt solid #0E2750;">${esc(t)}</p>`;
+            // 항목
+            const item = (label, val) => `
+              <div style="margin:10pt 0 10pt 0;">
+                <p style="font-size:11pt;font-weight:bold;color:#1B3A6B;margin:0 0 4pt 0;padding-left:10pt;border-left:3pt solid #C9A86A;">${esc(label)}</p>
+                ${val ? `<p style="font-size:11pt;line-height:1.7;color:#0E2750;margin:0 0 0 13pt;">${br(val)}</p>` : `<p style="font-size:11pt;line-height:1.7;color:#6E7A8F;margin:0 0 0 13pt;font-style:italic;">[해당 단계에 정보 없음]</p>`}
+              </div>`;
+            
+            // 가장 약한 단계
+            const weakestSection = `${sh('가장 약한 단계 — 지금 집중할 곳')}
+              <div style="padding:16pt 20pt;background:#F2F1EC;border-left:3pt solid #0E2750;margin:6pt 0 14pt 0;">
+                <p style="font-size:14pt;font-weight:bold;color:#0E2750;margin:0;">STEP ${result.weakest.step}. ${esc(result.weakest.name)}</p>
+              </div>`;
+            
+            // 단계 가이드
+            const guideSection = result.stageGuide ? `${sh('이 단계에 대한 가이드')}
+              ${item('지금 당신의 상태', result.stageGuide.situation)}
+              ${result.stageGuide.concerns && result.stageGuide.concerns.length > 0 
+                ? `<div style="margin:10pt 0 10pt 0;">
+                    <p style="font-size:11pt;font-weight:bold;color:#1B3A6B;margin:0 0 4pt 0;">당신만 그런 게 아닙니다 — 흔한 고민</p>
+                    <table border="0" cellspacing="0" cellpadding="0" style="margin:0 0 0 12pt;">${result.stageGuide.concerns.map(c => `<tr><td style="padding:4pt 0;font-size:11pt;color:#0E2750;line-height:1.7;">\u201C${esc(c)}\u201D</td></tr>`).join('')}</table>
+                  </div>` 
+                : ''}
+              ${result.stageGuide.selfCheck && result.stageGuide.selfCheck.length > 0
+                ? `<div style="margin:10pt 0 10pt 0;">
+                    <p style="font-size:11pt;font-weight:bold;color:#1B3A6B;margin:0 0 4pt 0;">셀프 체크포인트</p>
+                    <table border="0" cellspacing="0" cellpadding="0" style="margin:0 0 0 12pt;">${result.stageGuide.selfCheck.map(c => `<tr><td width="20" style="padding:4pt 0;color:#1B3A6B;vertical-align:top;">\u25A1</td><td style="padding:4pt 0;font-size:11pt;color:#0E2750;line-height:1.7;">${esc(c)}</td></tr>`).join('')}</table>
+                  </div>`
+                : ''}
+              ${item('이 단계를 넘으면', result.stageGuide.vision)}` : '';
+            
+            // 지금 해야 할 일
+            const actionsSection = result.now.length > 0 ? `${sh('지금 해야 할 일')}
+              <table border="0" cellspacing="0" cellpadding="0" width="100%">${result.now.map((a, i) => `<tr><td width="24" style="padding:8pt 0 8pt 0;color:#0E2750;font-weight:bold;font-size:12pt;vertical-align:top;">${i+1}.</td><td style="padding:8pt 0;vertical-align:top;"><p style="font-size:11pt;color:#0E2750;font-weight:bold;margin:0 0 4pt 0;">${esc(a.text)}</p>${a.detail ? `<p style="font-size:11pt;color:#6E7A8F;margin:0;line-height:1.6;">${esc(a.detail)}</p>` : ''}</td></tr>`).join('')}</table>` : '';
+            
+            // 셀프 도움
+            const selfHelpSection = result.stageGuide && result.stageGuide.selfHelp && result.stageGuide.selfHelp.length > 0
+              ? `${sh('혼자서 충분히 할 수 있는 것')}
+                <table border="0" cellspacing="0" cellpadding="0" width="100%">${result.stageGuide.selfHelp.map((t, i) => `<tr><td width="24" style="padding:6pt 0;color:#C9A86A;font-weight:bold;font-size:11pt;vertical-align:top;">${i+1}.</td><td style="padding:6pt 0;font-size:11pt;color:#0E2750;line-height:1.7;vertical-align:top;">${esc(t)}</td></tr>`).join('')}</table>`
+              : '';
+            
+            // 도움 요청 시점
+            const askHelpSection = result.stageGuide && result.stageGuide.whenToAskHelp
+              ? `${sh('이럴 때는 도움이 필요할 수 있습니다')}
+                <p style="font-size:11pt;color:#0E2750;line-height:1.8;margin:6pt 0 14pt 0;padding:14pt 18pt;background:#F2F1EC;border-left:3pt solid #1B3A6B;">${br(result.stageGuide.whenToAskHelp)}</p>`
+              : '';
+            
+            // 도움되는 자료
+            const docsSection = result.docs.length > 0 ? `${sh('이 단계에서 도움되는 자료')}
+              <table border="0" cellspacing="0" cellpadding="0" width="100%">${result.docs.map(d => `<tr><td style="padding:5pt 0;font-size:11pt;color:#0E2750;line-height:1.6;vertical-align:top;"><strong>${esc(d.n)}</strong>${d.u ? `<br/><span style="font-size:10pt;color:#6E7A8F;">${esc(d.u)}</span>` : ''}</td></tr>`).join('')}</table>` : '';
+            
+            // 앞으로의 큰 그림
+            const remainingSection = `${sh('앞으로의 큰 그림 — 전체 STEP 진행 상황')}
+              <table border="0" cellspacing="0" cellpadding="0" width="100%">${result.remaining.map(r => `<tr><td width="100" style="padding:8pt 0;border-bottom:1pt solid #E8E5DD;color:#1B3A6B;font-weight:bold;font-size:11pt;vertical-align:top;">STEP ${r.step}</td><td style="padding:8pt 0;border-bottom:1pt solid #E8E5DD;font-size:11pt;color:#0E2750;vertical-align:top;">${esc(r.name)}</td><td width="100" style="padding:8pt 0;border-bottom:1pt solid #E8E5DD;text-align:right;font-size:11pt;font-weight:bold;color:${statusColor[r.status] || '#6E7A8F'};vertical-align:top;">${statusKr[r.status] || esc(r.status)}</td></tr>`).join('')}</table>`;
+            
+            const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="ProgId" content="Word.Document">
+<title>취업준비 진단 결과</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotPromptForConvert/></w:WordDocument></xml><![endif]-->
+<style>
+@page Section1 { size: A4; margin: 2.5cm 2cm; mso-page-orientation: portrait; }
+div.Section1 { page: Section1; }
+body { font-family: '맑은 고딕', 'Malgun Gothic', sans-serif; font-size: 11pt; color: #0E2750; line-height: 1.7; }
+p { margin: 0 0 8pt 0; }
+table { border-collapse: collapse; }
+</style>
+</head>
+<body lang="KO-KR">
+<div class="Section1">
+<p style="text-align:right;color:#6E7A8F;font-size:10pt;margin:0 0 4pt 0;">진단일 · ${today}</p>
+<p style="font-size:22pt;font-weight:bold;color:#0E2750;text-align:center;margin:0 0 6pt 0;padding-bottom:14pt;border-bottom:3pt solid #0E2750;letter-spacing:4pt;">취업준비 진단 결과</p>
+<p style="text-align:center;color:#1B3A6B;font-size:12pt;font-weight:bold;margin:0 0 24pt 0;">${esc(persona)}</p>
+
+${weakestSection}
+${guideSection}
+${actionsSection}
+${selfHelpSection}
+${askHelpSection}
+${docsSection}
+${remainingSection}
+
+</div></body></html>`;
+            
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + html], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `취업준비_진단결과_${today}.doc`;
+            document.body.appendChild(a);
             a.click();
-            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
           }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,background:COLORS.accent,color:COLORS.white,cursor:"pointer",fontSize: 16,fontWeight:600}}>
             결과 저장 (.doc)
           </div>

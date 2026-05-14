@@ -1,6 +1,17 @@
 import { useState } from "react";
 
 
+// __toDocxBlob: HTML을 실제 .docx Blob으로 변환 (모바일 Word 호환)
+// index.html 의 html-docx-js CDN 스크립트로 window.htmlDocx 가 제공됨
+const __toDocxBlob = (html) => {
+  if (typeof window !== 'undefined' && window.htmlDocx && window.htmlDocx.asBlob) {
+    try { return window.htmlDocx.asBlob(html); } catch (e) { console.error('htmlDocx failed:', e); }
+  }
+  return new Blob(['\ufeff' + html], { type: 'application/msword' });
+};
+
+
+
 // 멘토링·컨설팅 URL 상수 (작업 18: URL 상수화)
 const MENTORING_URLS = {
   consulting:        'https://www.latpeed.com/products/S92cP',  // 1-Hour 1:1 취업컨설팅
@@ -726,7 +737,7 @@ const IntroStickyHeader = ({ workbookKey, stepLabel, StepNavComponent }) => {
           style={{ padding: '8px 14px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: _INTRO_INK, color: '#fff', opacity: 0.4, cursor: 'not-allowed' }}
           title="작성을 시작하면 활성화됩니다"
         >
-          저장(.doc)
+          저장(.docx)
         </button>
       </div>
     </div>
@@ -1499,17 +1510,17 @@ ${remainingSection}
 </div></body></html>`;
             
             const BOM = '\uFEFF';
-            const blob = new Blob([BOM + html], { type: 'application/msword' });
+            const blob = __toDocxBlob(html);
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `취업준비_진단결과_${today}.doc`;
+            a.download = `취업준비_진단결과_${today}.docx`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
           }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,background:COLORS.accent,color:COLORS.white,cursor:"pointer",fontSize: 16,fontWeight:600}}>
-            결과 저장 (.doc)
+            결과 저장 (.docx)
           </div>
           <div onClick={() => { setPage('quiz'); setQi(QS.length - 1); }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,border:`1px solid ${COLORS.border}`,cursor:"pointer",fontSize: 16,color:COLORS.accent}}>
             이전

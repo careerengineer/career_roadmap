@@ -1457,47 +1457,53 @@ export default function App() {
 
         {/* Retry + Save */}
         <div style={{textAlign:"center",padding:"20px 0 32px",display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-          <div onClick={async () => {
-            try {
+          <div onClick={async () => {            try {
               const loadDocxLib = () => new Promise((resolve, reject) => {
                 if (window.docx) return resolve(window.docx);
                 const sources = [
-                  'https://cdn.jsdelivr.net/npm/docx@9.6.1/build/index.umd.min.js',
                   'https://unpkg.com/docx@9.6.1/dist/index.iife.js',
                   'https://cdn.jsdelivr.net/npm/docx@9.6.1/dist/index.iife.js',
-                  'https://unpkg.com/docx@9.6.1/build/index.umd.min.js',
                 ];
                 let idx = 0;
                 const tryNext = () => {
-                  if (idx >= sources.length) {
-                    reject(new Error('docx 라이브러리 다운로드 실패'));
-                    return;
-                  }
+                  if (idx >= sources.length) { reject(new Error('docx 로드 실패')); return; }
                   const script = document.createElement('script');
                   script.src = sources[idx++];
                   script.async = true;
-                  script.onload = () => {
-                    if (window.docx) resolve(window.docx);
-                    else tryNext();
-                  };
+                  script.onload = () => window.docx ? resolve(window.docx) : tryNext();
                   script.onerror = () => tryNext();
                   document.head.appendChild(script);
                 };
                 tryNext();
               });
               const docxLib = await loadDocxLib();
-              const { Document, Paragraph, TextRun, AlignmentType, BorderStyle, Packer } = docxLib;
+              const { Document, Paragraph, TextRun, ExternalHyperlink, AlignmentType, BorderStyle, Packer } = docxLib;
               const today = new Date().toISOString().slice(0,10);
               const persona = who === 'newbie' ? '신입' : who === 'career' ? '경력' : who === 'switch' ? '이직' : '미선택';
               const statusKr = { done: '완료', partial: '보완 필요', todo: '아직 안 함', locked: '앞 단계 먼저' };
               const statusColor = { done: '1B3A6B', partial: 'C9A86A', todo: '6E7A8F', locked: 'A8A8A8' };
               
+              // 스타일 헬퍼
               const titleP = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 40, font: '맑은 고딕', color: '0E2750', characterSpacing: 100 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 240 }, border: { bottom: { style: BorderStyle.SINGLE, size: 24, color: '0E2750', space: 6 } } });
               const subtitleP = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 24, font: '맑은 고딕', color: '1B3A6B' })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 480 } });
               const sectionH = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 28, font: '맑은 고딕', color: '0E2750' })], spacing: { before: 480, after: 200 }, border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: '0E2750', space: 4 } } });
               const labelP = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 22, font: '맑은 고딕', color: '1B3A6B' })], spacing: { before: 200, after: 80 }, border: { left: { style: BorderStyle.SINGLE, size: 24, color: 'C9A86A', space: 8 } }, indent: { left: 200 } });
               const bodyP = (t) => new Paragraph({ children: (t || '').split('\n').flatMap((line, i) => i === 0 ? [new TextRun({ text: line, size: 22, font: '맑은 고딕', color: '0E2750' })] : [new TextRun({ break: 1, text: line, size: 22, font: '맑은 고딕', color: '0E2750' })]), spacing: { before: 0, after: 160, line: 360 }, indent: { left: 360 } });
               const dateP = () => new Paragraph({ children: [new TextRun({ text: '진단일 · ' + today, size: 20, font: '맑은 고딕', color: '6E7A8F' })], alignment: AlignmentType.RIGHT, spacing: { after: 80 } });
+              
+              // 하이퍼링크 단락 (라벨 + URL을 직접 클릭 가능하게)
+              const linkP = (label, url, options = {}) => new Paragraph({
+                children: [
+                  new TextRun({ text: options.prefix || '🔗 ', size: 22, font: '맑은 고딕', color: '1B3A6B' }),
+                  new ExternalHyperlink({
+                    link: url,
+                    children: [new TextRun({ text: label, size: 22, font: '맑은 고딕', color: '0563C1', underline: { type: 'single', color: '0563C1' } })]
+                  })
+                ],
+                spacing: { before: options.before || 60, after: options.after || 60, line: 340 },
+                indent: { left: options.indent || 240 }
+              });
+              
               const item = (label, val) => {
                 const out = [labelP(label)];
                 if (val) out.push(bodyP(val));
@@ -1506,6 +1512,39 @@ export default function App() {
               };
               
               const children = [dateP(), titleP('취 업 준 비  진 단  결 과'), subtitleP(persona)];
+              
+              // CareerEngineer 핵심 자료 (상단 고정 안내)
+              children.push(sectionH('취업 준비에 도움되는 CareerEngineer 자료'));
+              children.push(new Paragraph({
+                children: [new TextRun({ text: '진단 결과와 함께 아래 자료를 참고하면 다음 단계로 나아가는 데 도움이 됩니다.', italic: true, size: 20, font: '맑은 고딕', color: '6E7A8F' })],
+                spacing: { before: 80, after: 160 }
+              }));
+              children.push(linkP('질문에 답하며 완성하는 자소서 작성 전자책 시리즈', 'https://www.latpeed.com/products/dfdMW'));
+              children.push(linkP('1:1 취업 컨설팅 — 진단 결과 기반 맞춤 조언', 'https://www.latpeed.com/products/S92cP'));
+              children.push(linkP('자소서 멘토링 — 실제 글을 함께 다듬는 멘토링', 'https://www.latpeed.com/products/fKnUV'));
+              children.push(linkP('면접 멘토링 — 모의 면접 + 답변 검증', 'https://www.latpeed.com/products/tZ5xw'));
+              children.push(linkP('이직 컨설팅 — 경력자 전용 트랙', 'https://www.latpeed.com/products/LimF9'));
+              children.push(linkP('CareerEngineeringLab 블로그 — 취업성공 알고리즘', 'https://blog.naver.com/careerengineering'));
+              children.push(linkP('브런치북: 이번생에 취업할 수 있을까?', 'https://brunch.co.kr/@careerengineer'));
+              
+              // CareerEngineer 전체 상품 안내
+              children.push(new Paragraph({
+                children: [new TextRun({ text: '', size: 22, font: '맑은 고딕' })],
+                spacing: { before: 240, after: 60 }
+              }));
+              children.push(new Paragraph({
+                children: [new TextRun({ text: '💡 CareerEngineer 전자책 / 멘토링 전체 안내', bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })],
+                spacing: { before: 160, after: 80 },
+                shading: { fill: 'F2F1EC' },
+                border: { left: { style: BorderStyle.SINGLE, size: 24, color: '1B3A6B', space: 8 } },
+                indent: { left: 240 }
+              }));
+              children.push(new Paragraph({
+                children: [new TextRun({ text: 'CareerEngineer는 취업·이직 준비의 모든 단계를 지원하는 전자책과 멘토링을 운영합니다. 전자책(자소서 작성, 경력기술서, 면접 답변집 등 단계별 가이드)과 멘토링(1:1 취업컨설팅, 자소서·면접 멘토링, 이직 컨설팅 — 1회/패키지 선택 가능)이 있으며, 모든 자료는 공학박사 멘토의 실제 합격 사례 기반으로 설계되어 있습니다.', size: 20, font: '맑은 고딕', color: '0E2750' })],
+                spacing: { before: 0, after: 120, line: 360 },
+                indent: { left: 240 }
+              }));
+              children.push(linkP('전체 상품 보기 (클릭)', 'https://www.latpeed.com/stores/eqxhZ', { prefix: '🔗 ', before: 80, after: 160, indent: 240 }));
               
               // 가장 약한 단계
               children.push(sectionH('가장 약한 단계 — 지금 집중할 곳'));
@@ -1531,7 +1570,7 @@ export default function App() {
               }
               
               // 지금 해야 할 일
-              if (result.now.length > 0) {
+              if (result.now && result.now.length > 0) {
                 children.push(sectionH('지금 해야 할 일'));
                 result.now.forEach((a, i) => {
                   children.push(new Paragraph({ children: [new TextRun({ text: (i+1) + '.  ', bold: true, size: 24, font: '맑은 고딕', color: '0E2750' }), new TextRun({ text: a.text, bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })], spacing: { before: 200, after: 60 }, indent: { left: 240, hanging: 240 } }));
@@ -1539,12 +1578,19 @@ export default function App() {
                 });
               }
               
-              // 도움되는 자료
-              if (result.docs.length > 0) {
-                children.push(sectionH('이 단계에서 도움되는 자료'));
+              // 이 단계에서 도움되는 자료 (하이퍼링크 포함)
+              if (result.docs && result.docs.length > 0) {
+                children.push(sectionH('이 단계에서 직접 도움되는 자료'));
+                children.push(new Paragraph({
+                  children: [new TextRun({ text: '아래 자료는 STEP ' + result.weakest.step + ' (' + result.weakest.name + ')을 진행하는 데 바로 활용할 수 있습니다.', italic: true, size: 20, font: '맑은 고딕', color: '6E7A8F' })],
+                  spacing: { before: 80, after: 160 }
+                }));
                 result.docs.forEach(d => {
-                  children.push(new Paragraph({ children: [new TextRun({ text: d.n, bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })], spacing: { before: 100, after: 40 } }));
-                  if (d.u) children.push(new Paragraph({ children: [new TextRun({ text: d.u, size: 20, font: '맑은 고딕', color: '6E7A8F' })], spacing: { before: 0, after: 80 } }));
+                  if (d.u) {
+                    children.push(linkP(d.n, d.u, { prefix: '▸ ', before: 120, after: 80, indent: 240 }));
+                  } else {
+                    children.push(new Paragraph({ children: [new TextRun({ text: '▸ ' + d.n, bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })], spacing: { before: 120, after: 80 }, indent: { left: 240 } }));
+                  }
                 });
               }
               
@@ -1559,14 +1605,13 @@ export default function App() {
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = `취업준비_진단결과_${today}.docx`;
+              a.download = '취업준비_진단결과_' + today + '.docx';
               document.body.appendChild(a); a.click(); document.body.removeChild(a);
               setTimeout(() => URL.revokeObjectURL(url), 1000);
             } catch (err) {
               console.error('docx 생성 실패:', err);
-              alert('워드 문서 생성에 실패했습니다.\n' + (err.message || ''));
+              alert('워드 문서 생성에 실패했습니다.\n' + (err.message || err));
             }
-          
           }} style={{display:"inline-block",padding:"12px 32px",borderRadius:12,background:COLORS.accent,color:COLORS.white,cursor:"pointer",fontSize: 16,fontWeight:600}}>
             결과 저장 (.docx)
           </div>

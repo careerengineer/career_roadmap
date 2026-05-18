@@ -1135,7 +1135,7 @@ export default function App() {
       }
       const { Document, Paragraph, TextRun, ExternalHyperlink, AlignmentType, BorderStyle, Packer } = docxLib;
       const today = new Date().toISOString().slice(0,10);
-      const persona = who === 'newbie' ? '신입' : who === 'career' ? '경력' : who === 'switch' ? '이직' : '미선택';
+      const persona = result.who === 'new' ? '신입' : result.who === 'career' ? '경력' : result.who === 'switch' ? '직무 전환' : result.who === 'grad' ? '대학원 졸업' : '미선택';
       const statusKr = { done: '완료', partial: '보완 필요', todo: '아직 안 함', locked: '앞 단계 먼저' };
       const statusColor = { done: '1B3A6B', partial: 'C9A86A', todo: '6E7A8F', locked: 'A8A8A8' };
       

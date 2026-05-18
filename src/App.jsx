@@ -1089,17 +1089,35 @@ export default function App() {
       const loadDocxLib = () => new Promise((resolve, reject) => {
         if (window.docx) return resolve(window.docx);
         const sources = [
+          'https://cdn.jsdelivr.net/npm/docx@9.6.1/build/index.umd.min.js',
           'https://unpkg.com/docx@9.6.1/dist/index.iife.js',
           'https://cdn.jsdelivr.net/npm/docx@9.6.1/dist/index.iife.js',
+          'https://unpkg.com/docx@9.6.1/build/index.umd.min.js',
         ];
         let idx = 0;
         const tryNext = () => {
-          if (idx >= sources.length) { reject(new Error('docx 로드 실패')); return; }
+          if (idx >= sources.length) {
+            reject(new Error('docx 라이브러리 다운로드 실패. 네트워크 연결을 확인해주세요.'));
+            return;
+          }
           const script = document.createElement('script');
           script.src = sources[idx++];
           script.async = true;
-          script.onload = () => window.docx ? resolve(window.docx) : tryNext();
-          script.onerror = () => tryNext();
+          // 10초 타임아웃
+          const timeout = setTimeout(() => {
+            script.onload = null;
+            script.onerror = null;
+            tryNext();
+          }, 10000);
+          script.onload = () => {
+            clearTimeout(timeout);
+            if (window.docx) resolve(window.docx);
+            else tryNext();
+          };
+          script.onerror = () => {
+            clearTimeout(timeout);
+            tryNext();
+          };
           document.head.appendChild(script);
         };
         tryNext();
@@ -1121,7 +1139,7 @@ export default function App() {
       
       const linkP = (label, url, options = {}) => new Paragraph({
         children: [
-          new TextRun({ text: options.prefix || '🔗 ', size: 22, font: '맑은 고딕', color: '1B3A6B' }),
+          new TextRun({ text: options.prefix || '', size: 22, font: '맑은 고딕', color: '1B3A6B' }),
           new ExternalHyperlink({
             link: url,
             children: [new TextRun({ text: label, size: 22, font: '맑은 고딕', color: '0563C1', underline: { type: 'single', color: '0563C1' } })]
@@ -1160,7 +1178,7 @@ export default function App() {
         spacing: { before: 240, after: 60 }
       }));
       children.push(new Paragraph({
-        children: [new TextRun({ text: '💡 CareerEngineer 전자책 / 멘토링 전체 안내', bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })],
+        children: [new TextRun({ text: 'CareerEngineer 전자책 / 멘토링 전체 안내', bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })],
         spacing: { before: 160, after: 80 },
         shading: { fill: 'F2F1EC' },
         border: { left: { style: BorderStyle.SINGLE, size: 24, color: '1B3A6B', space: 8 } },
@@ -1171,7 +1189,7 @@ export default function App() {
         spacing: { before: 0, after: 120, line: 360 },
         indent: { left: 240 }
       }));
-      children.push(linkP('전체 상품 보기 (클릭)', 'https://www.latpeed.com/stores/eqxhZ', { prefix: '🔗 ', before: 80, after: 160, indent: 240 }));
+      children.push(linkP('전체 상품 보기 (클릭)', 'https://www.latpeed.com/stores/eqxhZ', { prefix: '', before: 80, after: 160, indent: 240 }));
       
       // 가장 약한 단계
       children.push(sectionH('가장 약한 단계 — 지금 집중할 곳'));
@@ -1871,7 +1889,7 @@ export default function App() {
         {result.stageGuide && result.stageGuide.whenToAskHelp && (
           <div style={{ background: '#FBFAF6', border: `1px solid ${COLORS.accent2}55`, borderRadius: 14, padding: '18px 20px', margin: '16px 0' }}>
             <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent2, margin: 0, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>💬</span><span>이럴 때는 도움이 필요할 수 있습니다</span>
+              <span>이럴 때는 도움이 필요할 수 있습니다</span>
             </p>
             <p style={{ fontSize: 16, color: COLORS.accent, margin: 0, lineHeight: 1.75 }}>{result.stageGuide.whenToAskHelp}</p>
             <p style={{ fontSize: 14, color: COLORS.sub, margin: 0, marginTop: 10, lineHeight: 1.6, fontStyle: 'italic' }}>혼자 끙끙대는 시간이 길어지면 동기와 자신감이 같이 무너집니다. 적절한 타이밍에 도움을 받는 게 가장 효율적입니다.</p>

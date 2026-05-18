@@ -1083,6 +1083,10 @@ export default function App() {
   // 진단 결과 .docx 저장 (라이브러리 동적 로드)
   const handleSaveResult = async () => {
     if (!result) { alert('진단을 먼저 완료해주세요.'); return; }
+    if (!result.weakest || !result.weakest.step) {
+      alert('진단 결과 데이터가 손상되었습니다. 페이지를 새로고침 후 진단을 다시 진행해주세요.');
+      return;
+    }
     if (isSavingDocx) return;  // 중복 클릭 방지
     setIsSavingDocx(true);
     try {
@@ -1123,6 +1127,12 @@ export default function App() {
         tryNext();
       });
       const docxLib = await loadDocxLib();
+      // 필수 export 검증
+      const required = ['Document', 'Paragraph', 'TextRun', 'AlignmentType', 'BorderStyle', 'Packer'];
+      const missing = required.filter(k => !docxLib[k]);
+      if (missing.length > 0) {
+        throw new Error('docx 라이브러리 일부 누락: ' + missing.join(', '));
+      }
       const { Document, Paragraph, TextRun, ExternalHyperlink, AlignmentType, BorderStyle, Packer } = docxLib;
       const today = new Date().toISOString().slice(0,10);
       const persona = who === 'newbie' ? '신입' : who === 'career' ? '경력' : who === 'switch' ? '이직' : '미선택';
@@ -1130,7 +1140,7 @@ export default function App() {
       const statusColor = { done: '1B3A6B', partial: 'C9A86A', todo: '6E7A8F', locked: 'A8A8A8' };
       
       // 스타일 헬퍼
-      const titleP = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 40, font: '맑은 고딕', color: '0E2750', characterSpacing: 100 })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 240 }, border: { bottom: { style: BorderStyle.SINGLE, size: 24, color: '0E2750', space: 6 } } });
+      const titleP = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 40, font: '맑은 고딕', color: '0E2750' })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 240 }, border: { bottom: { style: BorderStyle.SINGLE, size: 24, color: '0E2750', space: 6 } } });
       const subtitleP = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 24, font: '맑은 고딕', color: '1B3A6B' })], alignment: AlignmentType.CENTER, spacing: { before: 200, after: 480 } });
       const sectionH = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 28, font: '맑은 고딕', color: '0E2750' })], spacing: { before: 480, after: 200 }, border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: '0E2750', space: 4 } } });
       const labelP = (t) => new Paragraph({ children: [new TextRun({ text: t, bold: true, size: 22, font: '맑은 고딕', color: '1B3A6B' })], spacing: { before: 200, after: 80 }, border: { left: { style: BorderStyle.SINGLE, size: 24, color: 'C9A86A', space: 8 } }, indent: { left: 200 } });
@@ -1322,7 +1332,14 @@ export default function App() {
       setTimeout(() => setSavedDocx(false), 3000);
     } catch (err) {
       console.error('docx 생성 실패:', err);
-      alert('워드 문서 생성에 실패했습니다.\n' + (err.message || err));
+      console.error('에러 상세:', err.stack);
+      const errMsg = err.message || String(err);
+      const hint = errMsg.includes('docx') || errMsg.includes('네트워크') 
+        ? '\n\n네트워크 연결을 확인하거나 잠시 후 다시 시도해주세요.'
+        : errMsg.includes('not a constructor') || errMsg.includes('undefined')
+        ? '\n\n페이지를 새로고침한 후 다시 시도해주세요.'
+        : '';
+      alert('워드 문서 생성에 실패했습니다.\n\n[원인] ' + errMsg + hint);
     } finally {
       setIsSavingDocx(false);
     }
@@ -1708,7 +1725,19 @@ export default function App() {
               </button>
               <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="career_roadmap" />
             </div>
-            <span style={{ fontSize: 16, color: COLORS.sub, whiteSpace: 'nowrap' }}>{qi+1}/{QS.length}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, whiteSpace: 'nowrap' }}>
+              {autoSaveStatus && (
+                <span style={{ fontSize: 13, color: autoSaveStatus.startsWith('⚠') ? '#C9A86A' : COLORS.sub, fontStyle: 'italic' }}>
+                  {autoSaveStatus}
+                </span>
+              )}
+              <button onClick={clearSavedData}
+                title="저장된 진단 내용을 삭제하고 처음부터 다시 시작"
+                style={{ background: 'transparent', border: `1px solid ${COLORS.border}`, borderRadius: 6, padding: '4px 10px', fontSize: 12, color: COLORS.sub, cursor: 'pointer', fontFamily: 'inherit' }}>
+                초기화
+              </button>
+              <span style={{ fontSize: 16, color: COLORS.sub }}>{qi+1}/{QS.length}</span>
+            </div>
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",padding:"20px 0 16px",gap:10}}>
@@ -1772,15 +1801,27 @@ export default function App() {
               </button>
               <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="career_roadmap" />
             </div>
-            <button onClick={handleSaveResult} disabled={isSavingDocx}
-              style={{ background: isSavingDocx ? COLORS.sub : COLORS.accent, color: COLORS.white, border: 'none', borderRadius: RADIUS.base, padding: `${SPACING.sm}px ${SPACING.md}px`, fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold, cursor: isSavingDocx ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, opacity: isSavingDocx ? 0.7 : 1, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
-              {isSavingDocx ? (
-                <>
-                  <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'ce-spin 0.7s linear infinite' }} />
-                  생성 중…
-                </>
-              ) : savedDocx ? '✓ 저장 완료' : '저장 (.docx)'}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+              {autoSaveStatus && (
+                <span style={{ fontSize: 13, color: autoSaveStatus.startsWith('⚠') ? '#C9A86A' : COLORS.sub, fontStyle: 'italic' }}>
+                  {autoSaveStatus}
+                </span>
+              )}
+              <button onClick={clearSavedData}
+                title="저장된 진단 내용을 삭제하고 처음부터 다시 시작"
+                style={{ background: 'transparent', border: `1px solid ${COLORS.border}`, borderRadius: 6, padding: '6px 12px', fontSize: 12, color: COLORS.sub, cursor: 'pointer', fontFamily: 'inherit' }}>
+                초기화
+              </button>
+              <button onClick={handleSaveResult} disabled={isSavingDocx}
+                style={{ background: isSavingDocx ? COLORS.sub : COLORS.accent, color: COLORS.white, border: 'none', borderRadius: RADIUS.base, padding: `${SPACING.sm}px ${SPACING.md}px`, fontSize: FONT.size.sm, fontWeight: FONT.weight.semibold, cursor: isSavingDocx ? 'wait' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, opacity: isSavingDocx ? 0.7 : 1, fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                {isSavingDocx ? (
+                  <>
+                    <span style={{ display: 'inline-block', width: 12, height: 12, border: '2px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'ce-spin 0.7s linear infinite' }} />
+                    생성 중…
+                  </>
+                ) : savedDocx ? '✓ 저장 완료' : '저장 (.docx)'}
+              </button>
+            </div>
           </div>
         </div>
         

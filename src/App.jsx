@@ -1,5 +1,5 @@
-// [BUILD v37 20260520 11:30] 4가지 페르소나 갭 해소 - Q1 라벨 명확화 + switch_new 추가 + essay/interview level 1·2 분기 + career 연봉/포지셔닝
-import { useState, useEffect } from "react";
+// [BUILD v41 20260520] React import 명시(드롭다운 화이트스크린 해결) + STEP 0 weakest일 때 docx 다운로드 falsy 오판 버그 수정
+import React, { useState, useEffect } from "react";
 
 
 // 멘토링·컨설팅 URL 상수 (작업 18: URL 상수화)
@@ -50,7 +50,6 @@ const QS = [
     {v:"new",l:"첫 취업 준비 중 (학부)",d:"대학생 또는 학부 졸업생"},
     {v:"grad",l:"첫 취업 준비 중 (대학원)",d:"석사/박사 졸업 또는 졸업예정"},
     {v:"career",l:"이직 준비 중 (같은 직무)",d:"경력직, 회사만 옮기려는"},
-    {v:"switch_new",l:"직무를 바꾸려고 해요 (취준생)",d:"학부생/대학원생/졸업생이 전공·기존 방향과 다른 직무 지원"},
     {v:"switch",l:"직무를 바꾸려고 해요 (경력직)",d:"재직 중인 회사의 직무를 그만두고 다른 직무로 전환"},
   ]},
   { id:"job", q:"지원할 직무가 정해졌나요?", opts:[
@@ -68,16 +67,24 @@ const QS = [
     {v:1,l:"머릿속으로만 생각해봄",d:"문서로 쓰진 않았어요"},
     {v:2,l:"문서로 정리하고 직무와 연결함",d:"경험 목록이 있고 직무상세내용과 매칭함"},
   ]},
+  { id:"resume", q:"이력서가 준비되어 있나요?", opts:[
+    {v:0,l:"없음",d:"이력서를 아직 안 만들었어요"},
+    {v:1,l:"있지만 범용",d:"지원 직무에 맞게 고치진 않았어요"},
+    {v:2,l:"직무에 맞게 커스터마이즈함",d:"직무상세내용에 맞춰서 정리했어요"},
+  ]},
+  // 경력기술서: 경력 이직(career) + 직무전환 경력직(switch)에게만 표시
+  { id:"career_desc", q:"경력기술서가 준비되어 있나요?", whoOnly:["career","switch"], opts:[
+    {v:0,l:"없음",d:"경력기술서를 아직 안 만들었어요"},
+    {v:1,l:"있지만 미흡",d:"초안 수준이거나 회사·직무별 커스터마이즈 안 됨"},
+    {v:2,l:"잘 정리되어 있음",d:"프로젝트·성과별로 정리되어 면접 베이스로 사용 가능"},
+  ]},
   { id:"essay", q:"자소서를 써봤나요?", opts:[
     {v:0,l:"아직 안 써봄",d:"시작을 못 했어요"},
     {v:1,l:"쓰고 있는 중",d:"초안이 있거나 작성 중이에요"},
     {v:2,l:"제출했는데 계속 탈락",d:"여러 번 냈지만 서류에서 떨어져요"},
     {v:3,l:"서류는 통과한 적 있음",d:"면접까지 간 경험이 있어요"},
-  ]},
-  { id:"resume", q:"이력서가 준비되어 있나요?", opts:[
-    {v:0,l:"없음",d:"이력서를 아직 안 만들었어요"},
-    {v:1,l:"있지만 범용",d:"지원 직무에 맞게 고치진 않았어요"},
-    {v:2,l:"직무에 맞게 커스터마이즈함",d:"직무상세내용에 맞춰서 정리했어요"},
+    // 경력 이직(career) + 직무전환 경력직(switch)에게만 표시되는 옵션
+    {v:-1,l:"해당사항 없음 (자소서 미요구)",d:"이직 시 자소서를 요구하지 않는 회사에 지원해요",whoOnly:["career","switch"]},
   ]},
   { id:"interview", q:"면접 준비는 어느 정도 했나요?", opts:[
     {v:0,l:"아직 안 해봄",d:"면접 준비를 시작하지 않았어요"},
@@ -85,6 +92,25 @@ const QS = [
     {v:2,l:"답변 정리하고 소리 내어 연습함",d:"20개 이상 질문에 답변 준비함"},
   ]},
 ];
+
+// who에 따라 적용 가능한 질문 목록 반환 (whoOnly가 있는 질문은 해당 페르소나일 때만 포함)
+// who가 아직 선택되지 않았을 때(첫 질문 진행 전)는 모든 질문을 반환
+function getVisibleQS(who) {
+  return QS.filter(q => {
+    if (!q.whoOnly) return true;
+    if (!who) return true;
+    return q.whoOnly.includes(who);
+  });
+}
+
+// who에 따라 특정 질문의 옵션 필터링 (whoOnly가 있는 옵션은 해당 페르소나일 때만 포함)
+function getVisibleOpts(q, who) {
+  return q.opts.filter(opt => {
+    if (!opt.whoOnly) return true;
+    if (!who) return false;  // who 미선택이면 조건부 옵션은 숨김
+    return opt.whoOnly.includes(who);
+  });
+}
 
 // ════════════════════════════════════════════════════════════════
 //  단계별 깊이 있는 가이드 — 상황 진단, 흔한 고민, 비전, 셀프체크
@@ -719,6 +745,10 @@ function getStageNote(stepKey, level, who) {
 
   // STEP 4 — 자소서
   if (stepKey === "essay") {
+    if (level === -1) return {
+      summary: "✓ 자소서가 필요하지 않은 상태입니다",
+      guidance: "경력 이직에서 자소서를 요구하지 않는 회사에 지원 중이라면 이력서·경력기술서·면접에 집중하세요. 단, 같은 회사 내에서도 직무·포지션에 따라 자소서를 요구할 수 있으니 공고를 한 번 더 확인하는 게 안전합니다. 자소서를 요구하는 회사로 폭을 넓힐 계획이 생기면 이 단계로 돌아와서 다시 진단해 보세요."
+    };
     if (level === 0) return {
       summary: "자소서를 시작하지 못했습니다",
       guidance: who === "new" ? "지원동기부터 4단 구조(계기→이유→준비→기여)로 초안 시작. 신입은 '준비 과정'을 강조해야 합니다."
@@ -764,28 +794,42 @@ function getStageNote(stepKey, level, who) {
 
 function analyze(ans) {
   const who = ans.who;
-  // switch_new (전공/배경 다른 직무 취준생)는 대부분 new와 동일하게 처리
-  // 단, "전공 다른 직무로의 서사 설계" 메시지는 별도 분기
-  const effectiveWho = (who === 'switch_new') ? 'new' : who;
-  const levels = { job: ans.job, jd: ans.jd, exp: ans.exp, essay: ans.essay, resume: ans.resume, interview: ans.interview };
-  
+  // effectiveWho는 메시지 분기용 (현재는 who와 동일, 향후 페르소나 추가 시 확장 여지)
+  const effectiveWho = who;
+  const levels = { job: ans.job, jd: ans.jd, exp: ans.exp, essay: ans.essay, resume: ans.resume, interview: ans.interview, career_desc: ans.career_desc };
+  // 경력기술서 적용 대상: career(경력 이직), switch(직무전환 경력직)
+  const careerDescApplicable = (who === "career" || who === "switch");
+
   // Find weakest stage
   const stageMap = [
     { key:"job", step:0, name:"직무 방향 설정" },
     { key:"jd", step:1, name:"채용공고 분석" },
     { key:"exp", step:2, name:"경험 정리" },
-    { key:"resume", step:3, name:"이력서 작성" },
+    { key:"resume", step:3, name: careerDescApplicable ? "이력서·경력기술서 작성" : "이력서 작성" },
     { key:"essay", step:4, name:"자소서 작성" },
     { key:"interview", step:5, name:"면접 준비" },
   ];
 
+  // 단계별 완료 여부 판정 헬퍼
+  // - essay=-1: 자소서 미요구(해당없음) → 완료 취급
+  // - essay 기본: lv >= 3
+  // - resume(STEP 3): career/switch면 resume>=2 AND career_desc>=2 모두 만족 필요
+  // - 그 외: lv >= 2
+  const isStageComplete = (key) => {
+    const lv = levels[key];
+    if (key === "essay") return (lv === -1) || (lv >= 3);
+    if (key === "resume") {
+      if (!(lv >= 2)) return false;
+      if (careerDescApplicable && !(levels.career_desc >= 2)) return false;
+      return true;
+    }
+    return lv >= 2;
+  };
+
   let weakest = null;
   // 순서대로 첫 번째 미완료 단계를 찾음
-  // 완료 기준: job/jd/exp/resume/interview는 2이상, essay는 3(합격경험)
   for (const s of stageMap) {
-    const lv = levels[s.key];
-    const isComplete = (s.key === "essay") ? (lv >= 3) : (lv >= 2);
-    if (!isComplete) { weakest = s; break; }
+    if (!isStageComplete(s.key)) { weakest = s; break; }
   }
   if (!weakest) weakest = stageMap[5];
 
@@ -927,6 +971,39 @@ function analyze(ans) {
     });
   }
 
+  // STEP 3 — 경력기술서 (career/switch 대상): 이력서와 별도로 액션 추가
+  if (careerDescApplicable && levels.exp >= 1) {
+    if (levels.career_desc === 0) {
+      addAction(3, {
+        text: "경력기술서를 처음부터 구조화해서 작성하세요",
+        detail: "경력기술서는 이력서의 확장판이자 면접의 베이스 자료입니다. 채용담당자는 이력서로 '면접 부를지'를 판단하고, 경력기술서로 '실제 어떤 일을 어떻게 했는지'를 검증합니다.\n\n1단계: 구조 결정 — 3가지 중 1개 선택\n• 회사별 정렬: 회사가 1~2곳일 때\n• 프로젝트별 정렬: 회사가 많거나 프로젝트가 명확할 때\n• 역할·역량별 정렬: 직무 전환 시 (기존 역량을 새 직무에 맞춰 재구성)\n\n2단계: 각 항목에 들어가야 할 8개 필수 요소\n① 프로젝트·업무명 ② 기간 ③ 소속·역할 ④ 배경·목적 ⑤ 본인 담당 업무(팀 성과가 아닌 '나의 기여') ⑥ 사용한 방법론·도구 ⑦ 정량·정성 성과 ⑧ 학습·임팩트\n\n3단계: 수치화 — 모든 성과에 숫자 1개 이상\n• % (개선율, 점유율, 만족도)\n• 명/개 (팀원 수, 처리 건수, 고객 수)\n• 원 (매출, 절감액, 예산)\n• 개월·시간 (단축, 일정 준수)\n\n4단계: 회사·직무별 커스터마이즈 — 핵심 80%는 동일하게 두고, 지원 직무에 맞춰 강조점 20%만 수정. 잘 쓴 경력기술서 하나면 같은 직무 내 모든 회사에 응용 가능합니다.\n\n핵심: 경력기술서가 빈약하면 면접에서 '이력서에 적은 성과 어떻게 만들었나요?'에 답이 막힙니다. 면접 답변의 70%가 경력기술서 내용에서 나옵니다."
+      });
+      docs.push({
+        n: "경력기술서 작성 가이드북",
+        u: "https://www.latpeed.com/products/AkBH-",
+        w: "경력기술서는 이력서의 확장판이자 면접의 베이스 자료입니다. 가이드북은 회사별·프로젝트별·역할별 3가지 구조와 각 항목의 8개 필수 요소를 알려줍니다. 잘 쓴 경력기술서 하나면 같은 직무 내 모든 회사에 90%만 수정해서 활용 가능합니다."
+      });
+    } else if (levels.career_desc === 1) {
+      addAction(3, {
+        text: "경력기술서를 보강·정렬해 면접 베이스로 만드세요",
+        detail: "초안은 있는데 '면접에서 그대로 답변 가능한 수준'은 아닌 상태입니다. 다음 3가지를 점검하세요.\n\n[점검 1] 수치 보강\n• 각 프로젝트 성과에 숫자가 1개 이상 들어가 있나요?\n• 'B2B 매출 성장에 기여' → 'B2B 신규 고객 12개사 확보, 분기 매출 28% 증가에 기여' 식으로 정량화\n• 단순 활동 나열만 있으면 채용담당자는 '실제 역량'을 가늠하지 못합니다\n\n[점검 2] 본인 기여 분리\n• '팀 성과'가 아닌 '나의 기여'로 명확히 분리됐나요?\n• '팀이 ~을 했다'가 아닌 '내가 ~ 역할을 맡아 ~를 했고 그 결과 ~가 나왔다'\n• 5~6명 팀이면 본인이 한 일이 무엇인지 1줄로 답할 수 있어야 합니다\n\n[점검 3] 직무 커스터마이즈\n• 지원 직무 키워드(채용공고 자격요건)가 본문에 5개 이상 등장하나요?\n• 같은 경험도 지원 직무에 따라 강조점이 달라야 합니다 — 동일 텍스트로 모든 회사에 내는 건 비효율\n\n위 3가지를 한 프로젝트당 30분씩 보강하세요. 3~5개 핵심 프로젝트를 다듬으면 면접 답변의 베이스가 완성됩니다."
+      });
+      docs.push({
+        n: "경력기술서 작성 가이드북",
+        u: "https://www.latpeed.com/products/AkBH-",
+        w: "초안은 있는데 '이 수준이 면접 베이스로 쓸 만한가' 판단이 어려운 상태입니다. 가이드북의 8개 필수 요소 체크리스트와 STAR-I 정렬 템플릿이 가장 빠른 답입니다. 한 프로젝트당 30분이면 보강 작업이 끝납니다."
+      });
+      if (who === "career" || who === "switch") docs.push({
+        n: "이직 컨설팅",
+        u: MENTORING_URLS.career_consulting,
+        w: who === "switch"
+          ? "직무 전환 경력자의 경력기술서는 '기존 경험을 새 직무 관점으로 재구성'하는 게 핵심입니다. 혼자서는 '어떤 부분을 강조하고 어떤 부분을 축소할지' 판단이 가장 어려운 영역입니다. 이직 컨설팅에서는 경력기술서 재구성 + 자소서 + 면접까지 패키지로 함께 다듬습니다."
+          : "경력기술서는 이력서·면접의 베이스 자료라 한 번 잘 잡아두면 모든 회사 지원에 재활용 가능합니다. 이직 컨설팅에서는 경력기술서 점검 + 시장 포지셔닝 + 연봉 범위까지 함께 설계합니다."
+      });
+    }
+    // career_desc >= 2: 완료된 상태 — 별도 액션 없음
+  }
+
   // STEP 4: 자소서 (이력서 다음)
   if (levels.resume >= 1 && levels.essay === 0) {
     addAction(4, who === "new" ? {
@@ -984,8 +1061,8 @@ function analyze(ans) {
     });
   }
 
-  // STEP 5: 면접 (자소서 + 이력서 모두 1 이상일 때)
-  if (levels.essay >= 1 && levels.resume >= 1 && levels.interview === 0) {
+  // STEP 5: 면접 (이력서 1 이상 + 자소서 1 이상 OR 자소서 미요구)
+  if ((levels.essay >= 1 || levels.essay === -1) && levels.resume >= 1 && levels.interview === 0) {
     addAction(5, who === "new" ? {
       text: "자기소개 1분 30초 스크립트 + 인성·직무·역량 카테고리별 답변을 준비하세요",
       detail: "신입 면접은 80%가 비슷한 20개 질문 안에 있습니다. ①자기소개(1분 30초, 핵심 경험+역량+지원 직무 연결) ②인성(장단점·갈등·실패 경험·협업) ③직무(왜 이 직무·관련 경험·직무 이해도) ④역량(전공 활용·도구 사용·문제 해결). 각 카테고리당 4~5개 질문에 답변 정리하면 자동으로 20개가 됩니다."
@@ -1053,11 +1130,30 @@ function analyze(ans) {
   let hitTodo = false;
   for (const s of stageMap) {
     const lv = levels[s.key];
-    const isComplete = (s.key === "essay") ? (lv >= 3) : (lv >= 2);
-    let status = isComplete ? "done" : (lv === 0 || (s.key === "essay" && lv === 2)) ? "todo" : "partial";
+    const isComplete = isStageComplete(s.key);
+    let status;
+    if (isComplete) {
+      status = "done";
+    } else if (s.key === "essay") {
+      // essay=0(아직 안 써봄) / essay=2(반복 탈락)은 todo, 그 외는 partial
+      status = (lv === 0 || lv === 2 || lv === undefined) ? "todo" : "partial";
+    } else if (s.key === "resume" && careerDescApplicable) {
+      // STEP 3: 이력서·경력기술서 합산 판정
+      // 둘 다 0이면 todo, 하나라도 진행 중이면 partial
+      const resumeDone = (lv >= 2);
+      const cdDone = (levels.career_desc >= 2);
+      const resumeStarted = (lv >= 1);
+      const cdStarted = (levels.career_desc >= 1);
+      if (!resumeStarted && !cdStarted) status = "todo";
+      else if (resumeDone && cdDone) status = "done";  // 위에서 이미 처리됨
+      else status = "partial";
+    } else {
+      status = (lv === 0 || lv === undefined) ? "todo" : "partial";
+    }
     if (hitTodo && (status === "done" || status === "partial") && s.step > weakest.step) status = "recheck";
     if (status === "todo") hitTodo = true;
-    remaining.push({ ...s, status, level: lv });
+    const extra = (s.key === "resume" && careerDescApplicable) ? { careerDescLevel: levels.career_desc } : {};
+    remaining.push({ ...s, status, level: lv, ...extra });
   }
 
   // 전부 완료 시 축하 액션
@@ -1077,7 +1173,6 @@ function analyze(ans) {
   });
 
   // 깊이 있는 단계별 가이드 (현재 위치 진단, 흔한 고민, 셀프체크, 비전)
-  // switch_new는 new로 fallback (메시지 호환성), 단 raw who로 별도 안내는 별도 처리
   const stageGuide = getStageGuide(weakest.key, levels[weakest.key], effectiveWho);
 
   // 자소서 탈락 우회 안내: essay=2(반복 탈락)인데 weakest가 자소서 이전 단계인 경우
@@ -1100,7 +1195,7 @@ function analyze(ans) {
     interview: getStageNote("interview", levels.interview, effectiveWho),
   };
 
-  return { who, effectiveWho, weakest, now: topNow, actionsByStep, remaining, docs: uniqueDocs, stageGuide, essayWarning, stageNotes, levels };
+  return { who, effectiveWho, weakest, now: topNow, actionsByStep, remaining, docs: uniqueDocs, stageGuide, essayWarning, stageNotes, levels, careerDescApplicable };
 }
 
 const COLORS = { accent:"#0E2750", accent2:"#C9A86A", sub:"#6E7A8F", border:"#6E7A8F33", bg:"#ffffff", bgAlt:"#F2F1EC", white: "#ffffff", green: '#C9A86A', greenBg: '#FBFAF6', red: '#0E2750', redBg: '#F2F1EC', yellow: '#C9A86A', yellowBg: '#FBFAF6', blue: '#1B3A6B', blueBg: '#F2F1EC' };
@@ -1366,7 +1461,8 @@ export default function App() {
   // 진단 결과 .docx 저장 (라이브러리 동적 로드)
   const handleSaveResult = async () => {
     if (!result) { alert('진단을 먼저 완료해주세요.'); return; }
-    if (!result.weakest || !result.weakest.step) {
+    // weakest.step은 0(STEP 0)일 수 있으므로 falsy 검사가 아니라 명시적 타입 검사
+    if (!result.weakest || typeof result.weakest.step !== 'number') {
       alert('진단 결과 데이터가 손상되었습니다. 페이지를 새로고침 후 진단을 다시 진행해주세요.');
       return;
     }
@@ -1418,7 +1514,7 @@ export default function App() {
       }
       const { Document, Paragraph, TextRun, ExternalHyperlink, AlignmentType, BorderStyle, Packer } = docxLib;
       const today = new Date().toISOString().slice(0,10);
-      const persona = result.who === 'new' ? '신입 (학부)' : result.who === 'grad' ? '신입 (대학원)' : result.who === 'career' ? '경력' : result.who === 'switch' ? '직무 전환 (경력직)' : result.who === 'switch_new' ? '직무 전환 (취준생)' : '미선택';
+      const persona = result.who === 'new' ? '신입 (학부)' : result.who === 'grad' ? '신입 (대학원)' : result.who === 'career' ? '경력' : result.who === 'switch' ? '직무 전환 (경력직)' : '미선택';
       const statusKr = { done: '완료', partial: '보완 필요', todo: '아직 안 함', locked: '앞 단계 먼저' };
       const statusColor = { done: '1B3A6B', partial: 'C9A86A', todo: '6E7A8F', locked: 'A8A8A8' };
       
@@ -1448,6 +1544,22 @@ export default function App() {
         else out.push(new Paragraph({ children: [new TextRun({ text: '[해당 단계에 정보 없음]', italic: true, size: 22, font: '맑은 고딕', color: '6E7A8F' })], spacing: { before: 0, after: 160 }, indent: { left: 360 } }));
         return out;
       };
+
+      // 강조 박스 헬퍼 — 결과 페이지의 안내 박스(borderLeft + 배경색) 재현용
+      const calloutTitle = (t, color) => new Paragraph({
+        children: [new TextRun({ text: t, bold: true, size: 22, font: '맑은 고딕', color: color || '0E2750' })],
+        spacing: { before: 200, after: 80 },
+        shading: { fill: 'FBFAF6' },
+        border: { left: { style: BorderStyle.SINGLE, size: 24, color: color || 'C9A86A', space: 8 } },
+        indent: { left: 240 }
+      });
+      const calloutBody = (t) => new Paragraph({
+        children: (t || '').split('\n').flatMap((line, i) => i === 0 ? [new TextRun({ text: line, size: 22, font: '맑은 고딕', color: '0E2750' })] : [new TextRun({ break: 1, text: line, size: 22, font: '맑은 고딕', color: '0E2750' })]),
+        spacing: { before: 0, after: 200, line: 360 },
+        shading: { fill: 'FBFAF6' },
+        border: { left: { style: BorderStyle.SINGLE, size: 24, color: 'C9A86A', space: 8 } },
+        indent: { left: 240 }
+      });
       
       const children = [dateP(), titleP('취 업 준 비  진 단  결 과'), subtitleP(persona)];
       
@@ -1457,9 +1569,12 @@ export default function App() {
         children: [new TextRun({ text: '진단 결과와 함께 아래 자료를 참고하면 다음 단계로 나아가는 데 도움이 됩니다.', italic: true, size: 20, font: '맑은 고딕', color: '6E7A8F' })],
         spacing: { before: 80, after: 160 }
       }));
-      children.push(linkP('질문에 답하며 완성하는 자소서 작성 전자책 시리즈', 'https://www.latpeed.com/products/dfdMW'));
       children.push(linkP('1:1 취업 컨설팅 — 진단 결과 기반 맞춤 조언', 'https://www.latpeed.com/products/S92cP'));
-      children.push(linkP('자소서 멘토링 — 실제 글을 함께 다듬는 멘토링', 'https://www.latpeed.com/products/fKnUV'));
+      // 자소서 미요구(essay=-1)면 자소서 전자책·멘토링은 제외
+      if (result.levels.essay !== -1) {
+        children.push(linkP('질문에 답하며 완성하는 자소서 작성 전자책 시리즈', 'https://www.latpeed.com/products/dfdMW'));
+        children.push(linkP('자소서 멘토링 — 실제 글을 함께 다듬는 멘토링', 'https://www.latpeed.com/products/fKnUV'));
+      }
       children.push(linkP('면접 멘토링 — 모의 면접 + 답변 검증', 'https://www.latpeed.com/products/tZ5xw'));
       children.push(linkP('이직 컨설팅 — 경력자 전용 트랙', 'https://www.latpeed.com/products/LimF9'));
       children.push(linkP('CareerEngineeringLab 블로그 — 취업성공 알고리즘', 'https://blog.naver.com/careerengineering'));
@@ -1487,7 +1602,19 @@ export default function App() {
       // 가장 약한 단계
       children.push(sectionH('가장 약한 단계 — 지금 집중할 곳'));
       children.push(new Paragraph({ children: [new TextRun({ text: 'STEP ' + result.weakest.step + '. ' + result.weakest.name, bold: true, size: 28, font: '맑은 고딕', color: '0E2750' })], spacing: { before: 100, after: 100 }, shading: { fill: 'F2F1EC' }, border: { left: { style: BorderStyle.SINGLE, size: 24, color: '0E2750', space: 8 } }, indent: { left: 240 } }));
-      
+
+      // 자소서 미요구 안내 (career/switch + essay=-1)
+      if (result.levels && result.levels.essay === -1) {
+        children.push(calloutTitle('자소서를 요구하지 않는 회사에 지원 중이시군요'));
+        children.push(calloutBody("경력 이직에서 자소서를 요구하지 않는 경우가 많아 STEP 4(자소서)는 '해당없음'으로 처리되었습니다. 이 경우 채용담당자가 보는 핵심 문서는 이력서 + 경력기술서이고, 평가의 70%는 면접에서 결정됩니다. 따라서 STEP 3(이력서·경력기술서)와 STEP 5(면접 준비)에 집중하는 것이 가장 효율적입니다. 단, 같은 회사라도 직무·포지션에 따라 자소서를 요구할 수 있으니 공고를 한 번 더 확인하세요."));
+      }
+
+      // 자소서 탈락 우회 안내 (essay=2이면서 weakest가 자소서 이전 단계일 때)
+      if (result.essayWarning) {
+        children.push(calloutTitle(result.essayWarning.title));
+        children.push(calloutBody(result.essayWarning.message));
+      }
+
       // 단계 가이드
       if (result.stageGuide) {
         children.push(sectionH('이 단계에 대한 가이드'));
@@ -1538,12 +1665,47 @@ export default function App() {
         }
       }
       
-      // 지금 해야 할 일
-      if (result.now && result.now.length > 0) {
-        children.push(sectionH('지금 해야 할 일'));
-        result.now.forEach((a, i) => {
-          children.push(new Paragraph({ children: [new TextRun({ text: (i+1) + '.  ', bold: true, size: 24, font: '맑은 고딕', color: '0E2750' }), new TextRun({ text: a.text, bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })], spacing: { before: 200, after: 60 }, indent: { left: 240, hanging: 240 } }));
-          if (a.detail) children.push(new Paragraph({ children: [new TextRun({ text: a.detail, size: 22, font: '맑은 고딕', color: '6E7A8F' })], spacing: { before: 0, after: 80, line: 340 }, indent: { left: 480 } }));
+      // 지금 해야 할 일 — 모든 STEP의 모든 액션을 STEP별 그룹으로 출력 (결과 페이지의 "지금 당장 하세요" 섹션 대응)
+      const hasAnyAction = result.actionsByStep && Object.values(result.actionsByStep).some(arr => arr && arr.length > 0);
+      if (hasAnyAction) {
+        children.push(sectionH('지금 해야 할 일 — STEP별 액션'));
+        children.push(new Paragraph({
+          children: [new TextRun({ text: '각 STEP별로 무엇을 해야 하는지 정리했습니다. 진한 강조 단계가 가장 먼저 집중할 곳입니다.', italic: true, size: 20, font: '맑은 고딕', color: '6E7A8F' })],
+          spacing: { before: 80, after: 200 }
+        }));
+        result.remaining.forEach(stage => {
+          const stepActions = result.actionsByStep && result.actionsByStep[stage.step] ? result.actionsByStep[stage.step] : [];
+          if (stepActions.length === 0) return;
+          const isCurrent = stage.step === result.weakest.step;
+          // STEP 그룹 헤더
+          children.push(new Paragraph({
+            children: [
+              new TextRun({ text: 'STEP ' + stage.step + '. ' + stage.name, bold: true, size: 24, font: '맑은 고딕', color: isCurrent ? '0E2750' : '1B3A6B' }),
+              ...(isCurrent ? [new TextRun({ text: '   — 지금 가장 먼저', bold: true, size: 20, font: '맑은 고딕', color: 'C9A86A' })] : [])
+            ],
+            spacing: { before: 320, after: 120 },
+            shading: { fill: isCurrent ? 'F2F1EC' : 'FBFAF6' },
+            border: { left: { style: BorderStyle.SINGLE, size: 24, color: isCurrent ? '0E2750' : 'C9A86A', space: 8 } },
+            indent: { left: 240 }
+          }));
+          // STEP 안의 각 액션
+          stepActions.forEach((a, ai) => {
+            children.push(new Paragraph({
+              children: [
+                new TextRun({ text: (ai+1) + '. ', bold: true, size: 22, font: '맑은 고딕', color: '0E2750' }),
+                new TextRun({ text: a.text, bold: true, size: 22, font: '맑은 고딕', color: '0E2750' })
+              ],
+              spacing: { before: 160, after: 60 },
+              indent: { left: 360, hanging: 240 }
+            }));
+            if (a.detail) {
+              children.push(new Paragraph({
+                children: (a.detail || '').split('\n').flatMap((line, li) => li === 0 ? [new TextRun({ text: line, size: 22, font: '맑은 고딕', color: '6E7A8F' })] : [new TextRun({ break: 1, text: line, size: 22, font: '맑은 고딕', color: '6E7A8F' })]),
+                spacing: { before: 0, after: 100, line: 340 },
+                indent: { left: 600 }
+              }));
+            }
+          });
         });
       }
       
@@ -1599,7 +1761,85 @@ export default function App() {
       // 전체 STEP 진행 상황
       children.push(sectionH('앞으로의 큰 그림 — 전체 STEP 진행 상황'));
       result.remaining.forEach(r => {
-        children.push(new Paragraph({ children: [new TextRun({ text: 'STEP ' + r.step, bold: true, size: 22, font: '맑은 고딕', color: '1B3A6B' }), new TextRun({ text: '\t' + r.name + '\t', size: 22, font: '맑은 고딕', color: '0E2750' }), new TextRun({ text: statusKr[r.status] || r.status, bold: true, size: 22, font: '맑은 고딕', color: statusColor[r.status] || '6E7A8F' })], spacing: { before: 80, after: 80 }, border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'E8E5DD', space: 4 } } }));
+        // 자소서 미요구 케이스 표시
+        let statusText = statusKr[r.status] || r.status;
+        if (r.key === 'essay' && r.level === -1) statusText = '해당없음';
+        children.push(new Paragraph({ children: [new TextRun({ text: 'STEP ' + r.step, bold: true, size: 22, font: '맑은 고딕', color: '1B3A6B' }), new TextRun({ text: '\t' + r.name + '\t', size: 22, font: '맑은 고딕', color: '0E2750' }), new TextRun({ text: statusText, bold: true, size: 22, font: '맑은 고딕', color: statusColor[r.status] || '6E7A8F' })], spacing: { before: 80, after: 80 }, border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'E8E5DD', space: 4 } } }));
+        // STEP 3 — 경력기술서 보조 라인 (career/switch만)
+        if (r.key === 'resume' && result.careerDescApplicable) {
+          const cdLv = r.careerDescLevel;
+          const cdKr = (cdLv === 2) ? '정리됨' : (cdLv === 1) ? '보완 필요' : '아직 안 함';
+          const cdHex = (cdLv === 2) ? '1B3A6B' : (cdLv === 1) ? 'C9A86A' : '6E7A8F';
+          children.push(new Paragraph({ children: [new TextRun({ text: '   · 경력기술서: ', size: 20, font: '맑은 고딕', color: '6E7A8F' }), new TextRun({ text: cdKr, bold: true, size: 20, font: '맑은 고딕', color: cdHex })], spacing: { before: 0, after: 80 } }));
+        }
+        // stageNotes — 사용자 답변에 맞춘 summary + guidance (결과 페이지에서 펼쳐 보이는 내용)
+        const note = result.stageNotes && result.stageNotes[r.key];
+        const isCurrent = r.step === result.weakest.step;
+        if (note && (note.summary || note.guidance)) {
+          if (note.summary) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: note.summary, bold: true, size: 20, font: '맑은 고딕', color: isCurrent ? '0E2750' : 'C9A86A' })],
+              spacing: { before: 60, after: 40 },
+              indent: { left: 360 }
+            }));
+          }
+          if (note.guidance) {
+            children.push(new Paragraph({
+              children: [new TextRun({ text: note.guidance, size: 20, font: '맑은 고딕', color: '0E2750' })],
+              spacing: { before: 0, after: 160, line: 340 },
+              indent: { left: 360 }
+            }));
+          }
+        }
+      });
+
+      // INFO · 다음 STEP 안내 + 다음 단계 STEP별 자료
+      children.push(sectionH('다음 단계 — STEP별 자료'));
+      children.push(new Paragraph({
+        children: [new TextRun({ text: "이 진단은 '어디부터 시작할지' 짚어주는 입구입니다. 각 STEP의 깊이 있는 작업 — 직무·산업 세부 선택, 학위·경력 재해석, 회사 규모별 진입 전략, 시장가·연봉 판단 등 — 은 해당 STEP의 가이드워크북·멘토링에서 단계별로 풀어드립니다.", italic: true, size: 20, font: '맑은 고딕', color: '6E7A8F' })],
+        spacing: { before: 80, after: 200, line: 340 }
+      }));
+      const stepGuideList = [
+        { label: 'STEP 1 · 채용공고와 직무 분석으로 시작', url: 'https://www.latpeed.com/products/-3Wgm' },
+        { label: 'STEP 2 · 경험 발굴 인벤토리', url: 'https://www.latpeed.com/products/wDSaj' },
+        { label: 'STEP 3 · 이력서 작성', url: 'https://www.latpeed.com/products/F8JkO' },
+        // 경력 이직·직무전환 경력직은 경력기술서 워크북 추가
+        ...(result.careerDescApplicable ? [{ label: 'STEP 3 · 경력기술서 작성 (경력직)', url: 'https://www.latpeed.com/products/AkBH-' }] : []),
+        // 자소서 미요구(essay=-1)면 STEP 4 제외
+        ...(result.levels.essay !== -1 ? [{ label: 'STEP 4 · 자소서 5대 항목 (지원동기·직무역량 등)', url: 'https://www.latpeed.com/products/dfdMW' }] : []),
+        { label: 'STEP 5 · 1분 자기소개 + 면접 준비', url: 'https://www.latpeed.com/products/H7UHo' },
+      ];
+      stepGuideList.forEach(item => children.push(linkP(item.label, item.url)));
+
+      // 1:1 멘토링 · 컨설팅 안내
+      children.push(sectionH('1:1 멘토링 · 컨설팅 안내'));
+      children.push(new Paragraph({
+        children: [new TextRun({ text: '혼자 막히는 부분이 있다면 시니어 현직자와 1:1로 풀어보세요. 멘토링 수강 시 관련 가이드워크북이 제공됩니다.', italic: true, size: 20, font: '맑은 고딕', color: '6E7A8F' })],
+        spacing: { before: 80, after: 200, line: 340 }
+      }));
+      const mentoringCards = [
+        { title: 'CareerEngineer 1-Hour 1:1 취업컨설팅', desc: '방향 설정이 막막하다면 — 자소서·이력서·면접 중 핵심 고민 1시간 집중. 기초 전자책 5종 제공.', url: MENTORING_URLS.consulting },
+        // 자소서 미요구면 자소서 멘토링 카드 제외
+        ...(result.levels.essay !== -1 ? [{ title: '자소서 멘토링 프로그램', desc: '서류 합격이 어렵다면 — 채용담당자 관점 첨삭. 자소서 5종 + 경험정리 가이드 제공.', url: MENTORING_URLS.cover_letter }] : []),
+        { title: '면접 멘토링 프로그램', desc: '실전 답변이 안 나온다면 — 면접관 관점 모의면접. 1분 자기소개 + 면접 신입/경력 가이드 제공.', url: MENTORING_URLS.interview },
+        { title: '이직 컨설팅 (경력직)', desc: '이직 결정이 어렵다면 — 결정부터 면접까지 1:1 동행. 경력기술서 + 이력서 + 면접 경력직 가이드 제공.', url: MENTORING_URLS.career_consulting },
+      ];
+      mentoringCards.forEach(card => {
+        children.push(new Paragraph({
+          children: [
+            new ExternalHyperlink({
+              link: card.url,
+              children: [new TextRun({ text: card.title, bold: true, size: 22, font: '맑은 고딕', color: '0563C1', underline: { type: 'single', color: '0563C1' } })]
+            })
+          ],
+          spacing: { before: 160, after: 40 },
+          indent: { left: 240 }
+        }));
+        children.push(new Paragraph({
+          children: [new TextRun({ text: card.desc, size: 20, font: '맑은 고딕', color: '6E7A8F' })],
+          spacing: { before: 0, after: 120, line: 340 },
+          indent: { left: 240 }
+        }));
       });
       
       const doc = new Document({ creator: '', title: '취업준비 진단 결과', sections: [{ properties: { page: { margin: { top: 1400, right: 1133, bottom: 1400, left: 1133 } } }, children: children }] });
@@ -1640,7 +1880,12 @@ export default function App() {
   };
   
   const STORAGE_KEY = 'careerengineer_career_roadmap_v1';
-  
+
+  // 브라우저 탭 title 설정
+  useEffect(() => {
+    document.title = 'CareerEngineer | 무료 커리어 로드맵 진단';
+  }, []);
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -1696,11 +1941,53 @@ export default function App() {
 
   const css = { wrap:{fontFamily:"'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif",maxWidth: 1350,margin:"0 auto",padding:"0 16px",color:COLORS.accent} };
 
+  // 주어진 ans 기준으로 특정 인덱스의 질문이 현재 페르소나에 보이는지 판정
+  const isQuestionVisible = (idx, ansSnapshot) => {
+    const q = QS[idx];
+    if (!q) return false;
+    if (!q.whoOnly) return true;
+    const w = ansSnapshot && ansSnapshot.who;
+    if (!w) return true;  // who 미정이면 일단 보이는 것으로 (안전망)
+    return q.whoOnly.includes(w);
+  };
+
+  // 다음 보이는 질문 인덱스를 찾는다. 없으면 -1 반환
+  const findNextVisibleIdx = (fromIdx, ansSnapshot) => {
+    for (let i = fromIdx; i < QS.length; i++) {
+      if (isQuestionVisible(i, ansSnapshot)) return i;
+    }
+    return -1;
+  };
+
+  // 이전 보이는 질문 인덱스
+  const findPrevVisibleIdx = (fromIdx, ansSnapshot) => {
+    for (let i = fromIdx; i >= 0; i--) {
+      if (isQuestionVisible(i, ansSnapshot)) return i;
+    }
+    return -1;
+  };
+
+  // who에 따라 보여줄 총 질문 수(진행률용)
+  const totalVisibleCount = (ansSnapshot) => {
+    let c = 0;
+    for (let i = 0; i < QS.length; i++) if (isQuestionVisible(i, ansSnapshot)) c++;
+    return c;
+  };
+
+  // 현재 qi가 보이는 질문 중 몇 번째인지(1-indexed, 진행률용)
+  const currentVisibleOrder = (ansSnapshot) => {
+    let order = 0;
+    for (let i = 0; i <= qi; i++) if (isQuestionVisible(i, ansSnapshot)) order++;
+    return order;
+  };
+
   const selectOpt = (qid, val) => {
     const newAns = { ...ans, [qid]: val };
     setAns(newAns);
-    if (qi < QS.length - 1) {
-      setTimeout(() => setQi(qi + 1), 200);
+    // 다음 보이는 질문을 찾는다 (조건부 질문 스킵)
+    const nextIdx = findNextVisibleIdx(qi + 1, newAns);
+    if (nextIdx !== -1) {
+      setTimeout(() => setQi(nextIdx), 200);
     } else {
       const r = analyze(newAns);
       setResult(r);
@@ -1973,21 +2260,23 @@ export default function App() {
       StepNavComponent={StepNavigatorDropdown}
       stepLabel='STEP 0 · 진단'
       title='취업 준비, 지금 뭘 해야 할까?'
-      subtitle='7개 질문에 답하면 지금 당장 해야 할 일을 알려드립니다'
+      subtitle='7~8개 질문에 답하면 지금 당장 해야 할 일을 알려드립니다'
       flow={[
           { label: '질문 1', desc: '어떤 상황인가요? — 신입·이직·직무전환·대학원졸' },
           { label: '질문 2', desc: '지원할 직무가 정해졌나요?' },
           { label: '질문 3', desc: '채용공고를 분석해봤나요?' },
           { label: '질문 4', desc: '내 경험을 정리해봤나요?' },
-          { label: '질문 5', desc: '자소서를 써봤나요?' },
-          { label: '질문 6', desc: '이력서가 준비되어 있나요?' },
-          { label: '질문 7', desc: '면접 준비는 어느 정도 했나요?' },
+          { label: '질문 5', desc: '이력서가 준비되어 있나요?' },
+          { label: '질문 6', desc: '경력기술서가 준비되어 있나요? (경력 이직·직무전환 경력직만)' },
+          { label: '질문 7', desc: '자소서를 써봤나요? (경력 이직·전환은 "해당없음" 선택 가능)' },
+          { label: '질문 8', desc: '면접 준비는 어느 정도 했나요?' },
         ]}
       flowTitle={'진단 흐름 (약 2분)'}
       prerequisites={undefined}
       relatedWorkbooks={undefined}
       helpModal={<FirstVisitModal open={showHelp} onClose={() => setShowHelp(false)} title='취업준비 로드맵 사용 안내' steps={[
-          '7개 질문에 답하면 <strong>지금 당장 해야 할 일</strong>이 추천됩니다.',
+          '7~8개 질문에 답하면 <strong>지금 당장 해야 할 일</strong>이 추천됩니다.',
+          '경력 이직·직무전환 경력직은 <strong>경력기술서 질문 1개가 추가</strong>되고, 자소서를 요구하지 않는 회사에 지원 중이라면 자소서 질문에서 "해당사항 없음"을 선택할 수 있습니다.',
           '각 질문은 본인의 현재 상황과 가장 가까운 답변을 고르면 됩니다.',
           '결과 화면에서 추천된 액션을 <strong>순서대로 실행</strong>하세요.',
           '진단은 언제든 다시 받을 수 있으니 정직하게 답변하세요.',
@@ -1999,6 +2288,11 @@ export default function App() {
   // QUIZ
   if (page === "quiz") {
     const q = QS[qi];
+    // 현재 페르소나 기준 진행률
+    const total = totalVisibleCount(ans);
+    const current = currentVisibleOrder(ans);
+    // 현재 페르소나 기준 옵션 필터링 (whoOnly가 있는 옵션은 해당 페르소나일 때만 표시)
+    const visibleOpts = getVisibleOpts(q, ans.who);
     return (
       <div style={css.wrap}>
         {/* sticky 헤더 (가이드 PART 7-6) */}
@@ -2020,20 +2314,20 @@ export default function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
               <button onClick={goHome} title="처음 페이지로 이동 (작성 내용 유지)" style={{ background: 'transparent', color: '#6E7A8F', border: '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit', height: 36, display: 'inline-flex', alignItems: 'center' }}>처음으로</button>
               <button onClick={clearSavedData} disabled={clearedFlash} title={clearedFlash ? '기록 삭제됨' : confirmingClear ? '한번 더 클릭하면 기록이 삭제됩니다' : '저장된 작성 내용 기록을 삭제 (페이지 유지)'} style={{ background: confirmingClear ? '#C9A86A' : clearedFlash ? '#E8F5F0' : autoSaveStatus ? '#F0F9F5' : 'transparent', color: confirmingClear ? '#fff' : clearedFlash ? '#1FA47A' : autoSaveStatus ? '#1FA47A' : '#6E7A8F', border: confirmingClear ? '1px solid #C9A86A' : clearedFlash ? '1px solid #1FA47A' : autoSaveStatus ? '1px solid #1FA47A66' : '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: clearedFlash ? 'default' : 'pointer', whiteSpace: 'pre-line', fontFamily: 'inherit', lineHeight: 1.15, width: 140, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>{confirmingClear ? '기록을 삭제\n하시겠습니까?' : clearedFlash ? '✓ 기록 삭제됨' : autoSaveStatus ? autoSaveStatus : '기록 삭제하고\n다시 선택'}</button>
-              <span style={{ fontSize: 16, color: COLORS.sub, marginLeft: 4 }}>{qi+1}/{QS.length}</span>
+              <span style={{ fontSize: 16, color: COLORS.sub, marginLeft: 4 }}>{current}/{total}</span>
             </div>
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",padding:"20px 0 16px",gap:10}}>
           <div style={{flex:1,height:4,background:COLORS.border,borderRadius:2}}>
-            <div style={{height:4,background:COLORS.accent,borderRadius:2,width:`${((qi+1)/QS.length)*100}%`,transition:"width .3s"}}/>
+            <div style={{height:4,background:COLORS.accent,borderRadius:2,width:`${(current/total)*100}%`,transition:"width .3s"}}/>
           </div>
-          <span style={{fontSize: 16,color:COLORS.sub}}>{qi+1}/{QS.length}</span>
+          <span style={{fontSize: 16,color:COLORS.sub}}>{current}/{total}</span>
         </div>
 
         <div style={{padding:"24px 0"}}>
           <h2 style={{fontSize:20,fontWeight:700,margin:"0 0 20px",lineHeight:1.4}}>{q.q}</h2>
-          {q.opts.map((opt,i) => {
+          {visibleOpts.map((opt,i) => {
             const selected = ans[q.id] === opt.v;
             return (
               <div key={i} onClick={()=>selectOpt(q.id, opt.v)}
@@ -2048,7 +2342,12 @@ export default function App() {
         </div>
 
         <div style={{display:"flex",justifyContent:"flex-start",padding:"0 0 24px"}}>
-          <button onClick={()=>{if(qi>0)setQi(qi-1);else setPage("welcome");}}
+          <button onClick={()=>{
+              // 이전 보이는 질문으로 이동 (조건부 질문 스킵)
+              const prev = findPrevVisibleIdx(qi - 1, ans);
+              if (prev >= 0) setQi(prev);
+              else setPage("welcome");
+            }}
             style={{cursor:"pointer",fontSize:16,color:COLORS.accent,padding:"12px 24px",border:`1px solid ${COLORS.border}`,background:"transparent",borderRadius:10,fontWeight:500}}>
             이전
           </button>
@@ -2111,11 +2410,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* ═══ switch_new 전용 안내 — 전공 다른 직무로 지원하는 취준생 ═══ */}
-        {result.who === 'switch_new' && (
+        {/* ═══ 자소서 미요구 안내 (career/switch + essay=-1) ═══ */}
+        {result.levels && result.levels.essay === -1 && (
           <div style={{ background: '#FBFAF6', borderRadius: 14, padding: '18px 20px', margin: '16px 0', borderLeft: `4px solid ${COLORS.accent2}` }}>
-            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent, margin: 0, marginBottom: 10, letterSpacing: 0.3 }}>전공·배경과 다른 직무로 지원하시는군요</p>
-            <p style={{ fontSize: 16, color: COLORS.accent, margin: 0, lineHeight: 1.75 }}>학부생/대학원생/졸업생이 전공이나 기존 방향과 다른 직무를 지원할 때 가장 중요한 것은 <strong>"왜 이 직무를 선택했는가"의 서사 설계</strong>입니다. 단순히 "관심이 생겼다"가 아니라, 전공 학습 중 발견한 구체적 계기 → 직무 탐색 과정 → 준비한 활동(부전공·사이드 프로젝트·자격증 등) → 기여 방향까지 4단으로 이어지는 스토리가 필요합니다. 이 서사가 자소서 지원동기 항목과 면접 "왜 이 직무" 답변의 핵심 재료가 됩니다.</p>
+            <p style={{ fontSize: 16, fontWeight: 700, color: COLORS.accent, margin: 0, marginBottom: 10, letterSpacing: 0.3 }}>자소서를 요구하지 않는 회사에 지원 중이시군요</p>
+            <p style={{ fontSize: 16, color: COLORS.accent, margin: 0, lineHeight: 1.75 }}>경력 이직에서 자소서를 요구하지 않는 경우가 많아 STEP 4(자소서)는 <strong>"해당없음"</strong>으로 처리되었습니다. 이 경우 채용담당자가 보는 핵심 문서는 <strong>이력서 + 경력기술서</strong>이고, 평가의 70%는 면접에서 결정됩니다. 따라서 <strong>STEP 3(이력서·경력기술서)와 STEP 5(면접 준비)에 집중</strong>하는 것이 가장 효율적입니다. 단, 같은 회사라도 직무·포지션에 따라 자소서를 요구할 수 있으니 공고를 한 번 더 확인하세요.</p>
           </div>
         )}
 
@@ -2280,11 +2579,18 @@ export default function App() {
         {/* Big Picture - 각 단계별 사용자 답변 맞춤 안내 포함 */}
         <div style={{margin:"20px 0"}}>
           <h2 style={{fontSize:16,fontWeight:700,margin:"0 0 4px"}}>앞으로의 큰 그림 — 단계별 안내</h2>
-          <p style={{fontSize: 16, color: COLORS.sub, margin: '0 0 12px', lineHeight: 1.6}}>당신이 답변한 7개 질문을 바탕으로 각 STEP에 대해 무엇을 해야 하는지 정리했습니다.</p>
+          <p style={{fontSize: 16, color: COLORS.sub, margin: '0 0 12px', lineHeight: 1.6}}>당신이 답변한 질문을 바탕으로 각 STEP에 대해 무엇을 해야 하는지 정리했습니다.</p>
           <div style={{borderRadius:14,border:`1px solid ${COLORS.border}`,overflow:"hidden"}}>
             {result.remaining.map((r, i) => {
               const note = result.stageNotes && result.stageNotes[r.key];
               const isCurrent = r.step === result.weakest.step;
+              // STEP 3 (resume) — career/switch면 경력기술서 보조 라벨
+              const cdLevel = r.careerDescLevel;
+              const showCareerDescSub = (r.key === "resume" && result.careerDescApplicable);
+              const cdLabel = (cdLevel === 2) ? "✓ 정리됨"
+                : (cdLevel === 1) ? "보완 필요"
+                : "아직 안 함";
+              const cdColor = (cdLevel === 2) ? COLORS.green : (cdLevel === 1) ? COLORS.yellow : COLORS.sub;
               return (
                 <div key={i} style={{borderBottom:i<result.remaining.length-1?`1px solid ${COLORS.border}`:"none",background:isCurrent?"#F2F1EC":"#fff"}}>
                   <div style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px"}}>
@@ -2297,6 +2603,13 @@ export default function App() {
                     </div>
                     <span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:90,fontSize: 16,padding:"4px 8px",borderRadius:20,background:statusColor[r.status]+"18",color:statusColor[r.status],fontWeight:500,flexShrink:0}}>{statusLabel[r.status]}</span>
                   </div>
+                  {showCareerDescSub && (
+                    <div style={{padding:"0 16px 10px 52px",display:"flex",alignItems:"center",gap:8,fontSize:14,color:COLORS.sub}}>
+                      <span style={{display:"inline-block",width:6,height:6,borderRadius:3,background:cdColor}}/>
+                      <span>경력기술서:</span>
+                      <span style={{color:cdColor,fontWeight:600}}>{cdLabel}</span>
+                    </div>
+                  )}
                   {note && (note.summary || note.guidance) && (
                     <div style={{padding:"0 16px 14px 52px"}}>
                       {note.summary && (
@@ -2316,7 +2629,7 @@ export default function App() {
         {/* ═══ 관련 자료 + 멘토링 안내 (PART 6-4, 7-8) ═══ */}
         <div style={{ background: '#F2F1EC', border: '1px solid rgba(27, 58, 107, 0.2)', borderRadius: 10, padding: 16, marginTop: 24, marginBottom: 16 }}>
           <p style={{ fontSize: 16, fontWeight: 600, color: '#1B3A6B', letterSpacing: 0.5, textTransform: 'uppercase', margin: 0, marginBottom: 8 }}>INFO · 다음 STEP 안내</p>
-          <p style={{ fontSize: 16, color: '#0E2750', margin: 0, lineHeight: 1.6 }}>진단 결과에서 추천한 액션을 순서대로 실행하세요</p>
+          <p style={{ fontSize: 16, color: '#0E2750', margin: 0, lineHeight: 1.6 }}>이 진단은 "어디부터 시작할지" 짚어주는 입구입니다. 각 STEP의 깊이 있는 작업 — 직무·산업 세부 선택, 학위·경력 재해석, 회사 규모별 진입 전략, 시장가·연봉 판단 등 — 은 해당 STEP의 가이드워크북·멘토링에서 단계별로 풀어드립니다.</p>
         </div>
 
         <RelatedWorkbookList
@@ -2324,8 +2637,9 @@ export default function App() {
           items={[
             { id: 'job_analysis', hint: 'STEP 1 · 채용공고와 직무 분석으로 시작' },
             { id: 'experience', hint: 'STEP 2 · 경험 발굴 인벤토리' },
-            { id: 'resume', hint: 'STEP 3 · 이력서 작성 (경력직은 경력기술서 추가)' },
-            { id: 'motivation', hint: 'STEP 4 · 자소서 5대 항목 (지원동기·직무역량 등)' },
+            { id: 'resume', hint: result.careerDescApplicable ? 'STEP 3 · 이력서 + 경력기술서 작성' : 'STEP 3 · 이력서 작성' },
+            // 자소서 미요구(essay=-1)면 STEP 4 자소서 항목 제외
+            ...(result.levels.essay !== -1 ? [{ id: 'motivation', hint: 'STEP 4 · 자소서 5대 항목 (지원동기·직무역량 등)' }] : []),
             { id: 'self_introduction', hint: 'STEP 5 · 1분 자기소개 + 면접 준비' }
           ]}
         />
@@ -2340,12 +2654,15 @@ export default function App() {
               <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>CareerEngineer 1-Hour 1:1 취업컨설팅</p>
               <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>방향 설정이 막막하다면 — 자소서·이력서·면접 중 핵심 고민 1시간 집중. 기초 전자책 5종 제공.</p>
             </a>
-            <a href={MENTORING_URLS.cover_letter} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center', transition: 'opacity 150ms ease'}}
-  onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
-  onMouseLeave={e => e.currentTarget.style.opacity = 1}>
-              <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>자소서 멘토링 프로그램</p>
-              <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>서류 합격이 어렵다면 — 채용담당자 관점 첨삭. 자소서 5종 + 경험정리 가이드 제공.</p>
-            </a>
+            {/* 자소서 미요구(essay=-1)면 자소서 멘토링 카드 숨김 */}
+            {result.levels.essay !== -1 && (
+              <a href={MENTORING_URLS.cover_letter} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center', transition: 'opacity 150ms ease'}}
+    onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
+    onMouseLeave={e => e.currentTarget.style.opacity = 1}>
+                <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>자소서 멘토링 프로그램</p>
+                <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>서류 합격이 어렵다면 — 채용담당자 관점 첨삭. 자소서 5종 + 경험정리 가이드 제공.</p>
+              </a>
+            )}
             <a href={MENTORING_URLS.interview} target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #6E7A8F33', textDecoration: 'none', textAlign: 'center', transition: 'opacity 150ms ease'}}
   onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
   onMouseLeave={e => e.currentTarget.style.opacity = 1}>

@@ -1461,7 +1461,8 @@ export default function App() {
   // 진단 결과 .docx 저장 (라이브러리 동적 로드)
   const handleSaveResult = async () => {
     if (!result) { alert('진단을 먼저 완료해주세요.'); return; }
-    if (!result.weakest || !result.weakest.step) {
+    // weakest.step은 0(STEP 0)일 수 있으므로 falsy 검사가 아니라 명시적 타입 검사
+    if (!result.weakest || typeof result.weakest.step !== 'number') {
       alert('진단 결과 데이터가 손상되었습니다. 페이지를 새로고침 후 진단을 다시 진행해주세요.');
       return;
     }

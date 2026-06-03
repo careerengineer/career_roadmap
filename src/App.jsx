@@ -36,8 +36,8 @@ const FirstVisitModal = ({ open, onClose, title, steps }) => {
 const StickyFooter = () => (
   <div style={{ position: 'sticky', bottom: 0, background: '#FBFAF6', borderTop: '1px solid #6E7A8F33', padding: '10px 16px', marginTop: 24, zIndex: 5 }}>
     <div style={{ maxWidth: 1350, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-      <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0 }}>© 2026 CareerEngineer. All Rights Reserved.</p>
-      <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0 }}>
+      <p style={{ fontSize: 16, color: '#565F72', margin: 0 }}>© 2026 CareerEngineer. All Rights Reserved.</p>
+      <p style={{ fontSize: 16, color: '#565F72', margin: 0 }}>
         <a href="https://open.kakao.com/me/careerengineer" target="_blank" rel="noopener noreferrer" style={{ color: '#C9A86A', textDecoration: 'none' }}>CareerEngineer 카카오톡 상담</a>
       </p>
     </div>
@@ -1385,7 +1385,7 @@ function analyze(ans) {
   return { who, effectiveWho, weakest, now: topNow, actionsByStep, remaining, docs: uniqueDocs, stageGuide, essayWarning, stageNotes, levels, careerDescApplicable };
 }
 
-const COLORS = { accent:"#0E2750", accent2:"#C9A86A", sub:"#6E7A8F", border:"#6E7A8F33", bg:"#ffffff", bgAlt:"#F2F1EC", white: "#ffffff", green: '#C9A86A', greenBg: '#FBFAF6', red: '#0E2750', redBg: '#F2F1EC', yellow: '#C9A86A', yellowBg: '#FBFAF6', blue: '#1B3A6B', blueBg: '#F2F1EC' };
+const COLORS = { accent:"#0E2750", accent2:"#C9A86A", sub:"#565F72", border:"#6E7A8F33", bg:"#ffffff", bgAlt:"#F2F1EC", white: "#ffffff", green: '#C9A86A', greenBg: '#FBFAF6', red: '#0E2750', redBg: '#F2F1EC', yellow: '#C9A86A', yellowBg: '#FBFAF6', blue: '#1B3A6B', blueBg: '#F2F1EC' };
 const SPACING = { xs: 4, sm: 8, base: 12, md: 16, lg: 24, xl: 32, xxl: 48 };
 const RADIUS = { sm: 6, base: 10, md: 14, lg: 20, pill: 999 };
 const FONT = {
@@ -1418,7 +1418,7 @@ const _INTRO_INK = '#0E2750';
 const _INTRO_INK2 = '#1B3A6B';
 const _INTRO_PAPER = '#F2F1EC';
 const _INTRO_GOLD = '#C9A86A';
-const _INTRO_MUTE = '#6E7A8F';
+const _INTRO_MUTE = '#565F72';
 
 const BrandHero = () => (
   <div style={{ textAlign: 'center', marginBottom: 24, paddingTop: 12 }}>
@@ -2566,8 +2566,8 @@ export default function App() {
               <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="career_roadmap" />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-              <button onClick={goHome} title="처음 페이지로 이동 (작성 내용 유지)" style={{ background: 'transparent', color: '#6E7A8F', border: '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit', height: 36, display: 'inline-flex', alignItems: 'center' }}>처음으로</button>
-              <button onClick={clearSavedData} disabled={clearedFlash} title={clearedFlash ? '기록 삭제됨' : confirmingClear ? '한번 더 클릭하면 기록이 삭제됩니다' : '저장된 작성 내용 기록을 삭제 (페이지 유지)'} style={{ background: confirmingClear ? '#C9A86A' : clearedFlash ? '#E8F5F0' : autoSaveStatus ? '#F0F9F5' : 'transparent', color: confirmingClear ? '#fff' : clearedFlash ? '#1FA47A' : autoSaveStatus ? '#1FA47A' : '#6E7A8F', border: confirmingClear ? '1px solid #C9A86A' : clearedFlash ? '1px solid #1FA47A' : autoSaveStatus ? '1px solid #1FA47A66' : '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: clearedFlash ? 'default' : 'pointer', whiteSpace: 'pre-line', fontFamily: 'inherit', lineHeight: 1.15, width: 140, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>{confirmingClear ? '기록을 삭제\n하시겠습니까?' : clearedFlash ? '✓ 기록 삭제됨' : autoSaveStatus ? autoSaveStatus : '기록 삭제하고\n다시 선택'}</button>
+              <button onClick={goHome} title="처음 페이지로 이동 (작성 내용 유지)" style={{ background: 'transparent', color: '#565F72', border: '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit', height: 36, display: 'inline-flex', alignItems: 'center' }}>처음으로</button>
+              <button onClick={clearSavedData} disabled={clearedFlash} title={clearedFlash ? '기록 삭제됨' : confirmingClear ? '한번 더 클릭하면 기록이 삭제됩니다' : '저장된 작성 내용 기록을 삭제 (페이지 유지)'} style={{ background: confirmingClear ? '#C9A86A' : clearedFlash ? '#E8F5F0' : autoSaveStatus ? '#F0F9F5' : 'transparent', color: confirmingClear ? '#fff' : clearedFlash ? '#1FA47A' : autoSaveStatus ? '#1FA47A' : '#565F72', border: confirmingClear ? '1px solid #C9A86A' : clearedFlash ? '1px solid #1FA47A' : autoSaveStatus ? '1px solid #1FA47A66' : '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: clearedFlash ? 'default' : 'pointer', whiteSpace: 'pre-line', fontFamily: 'inherit', lineHeight: 1.15, width: 140, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>{confirmingClear ? '기록을 삭제\n하시겠습니까?' : clearedFlash ? '✓ 기록 삭제됨' : autoSaveStatus ? autoSaveStatus : '기록 삭제하고\n다시 선택'}</button>
               <span style={{ fontSize: 16, color: COLORS.sub, marginLeft: 4 }}>{current}/{total}</span>
             </div>
           </div>
@@ -2638,8 +2638,8 @@ export default function App() {
               <StepNavigatorDropdown open={showStepNav} onClose={() => setShowStepNav(false)} currentKey="career_roadmap" />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-              <button onClick={goHome} title="처음 페이지로 이동 (작성 내용 유지)" style={{ background: 'transparent', color: '#6E7A8F', border: '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit', height: 36, display: 'inline-flex', alignItems: 'center' }}>처음으로</button>
-              <button onClick={clearSavedData} disabled={clearedFlash} style={{ background: confirmingClear ? '#C9A86A' : clearedFlash ? '#E8F5F0' : autoSaveStatus ? '#F0F9F5' : 'transparent', color: confirmingClear ? '#fff' : clearedFlash ? '#1FA47A' : autoSaveStatus ? '#1FA47A' : '#6E7A8F', border: confirmingClear ? '1px solid #C9A86A' : clearedFlash ? '1px solid #1FA47A' : autoSaveStatus ? '1px solid #1FA47A66' : '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: clearedFlash ? 'default' : 'pointer', whiteSpace: 'pre-line', fontFamily: 'inherit', lineHeight: 1.15, width: 140, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }} title={clearedFlash ? '기록 삭제됨' : confirmingClear ? '한번 더 클릭하면 기록이 삭제됩니다' : '저장된 작성 내용 기록을 삭제 (페이지 유지)'}>
+              <button onClick={goHome} title="처음 페이지로 이동 (작성 내용 유지)" style={{ background: 'transparent', color: '#565F72', border: '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'inherit', height: 36, display: 'inline-flex', alignItems: 'center' }}>처음으로</button>
+              <button onClick={clearSavedData} disabled={clearedFlash} style={{ background: confirmingClear ? '#C9A86A' : clearedFlash ? '#E8F5F0' : autoSaveStatus ? '#F0F9F5' : 'transparent', color: confirmingClear ? '#fff' : clearedFlash ? '#1FA47A' : autoSaveStatus ? '#1FA47A' : '#565F72', border: confirmingClear ? '1px solid #C9A86A' : clearedFlash ? '1px solid #1FA47A' : autoSaveStatus ? '1px solid #1FA47A66' : '1px solid #6E7A8F66', borderRadius: 10, padding: '0 14px', fontSize: 11, fontWeight: 600, cursor: clearedFlash ? 'default' : 'pointer', whiteSpace: 'pre-line', fontFamily: 'inherit', lineHeight: 1.15, width: 140, height: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }} title={clearedFlash ? '기록 삭제됨' : confirmingClear ? '한번 더 클릭하면 기록이 삭제됩니다' : '저장된 작성 내용 기록을 삭제 (페이지 유지)'}>
                 {confirmingClear ? '기록을 삭제\n하시겠습니까?' : clearedFlash ? '✓ 기록 삭제됨' : autoSaveStatus ? autoSaveStatus : '기록 삭제하고\n다시 선택'}
               </button>
               <button onClick={handleSaveResult} disabled={isSavingDocx}
@@ -2828,7 +2828,7 @@ export default function App() {
                     {d.u ? (
                       <a href={d.u} target="_blank" rel="noopener noreferrer" style={{fontSize: 14,color:"#fff",background:COLORS.accent2,textDecoration:"none",fontWeight:600,padding:"8px 16px",borderRadius:8,whiteSpace:"nowrap",marginLeft:12}}>자료 보기</a>
                     ) : (
-                      <span style={{fontSize: 14,color:"#6E7A8F",padding:"8px 16px",border:`1px solid ${COLORS.border}`,borderRadius:8,whiteSpace:"nowrap",marginLeft:12}}>준비 중</span>
+                      <span style={{fontSize: 14,color:"#565F72",padding:"8px 16px",border:`1px solid ${COLORS.border}`,borderRadius:8,whiteSpace:"nowrap",marginLeft:12}}>준비 중</span>
                     )}
                   </div>
                   {d.w && (
@@ -2974,7 +2974,7 @@ export default function App() {
                     onMouseEnter={e => e.currentTarget.style.opacity = 0.8}
                     onMouseLeave={e => e.currentTarget.style.opacity = 1}>
                     <p style={{ fontSize: 16, fontWeight: 600, color: '#0E2750', margin: 0 }}>{c.title}</p>
-                    <p style={{ fontSize: 16, color: '#6E7A8F', margin: 0, marginTop: 4, lineHeight: 1.5 }}>{c.desc}</p>
+                    <p style={{ fontSize: 16, color: '#565F72', margin: 0, marginTop: 4, lineHeight: 1.5 }}>{c.desc}</p>
                   </a>
                 );
               });
@@ -2985,7 +2985,7 @@ export default function App() {
         {/* Retry + Save */}
         <div style={{textAlign:"center",padding:"20px 0 32px",display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",alignItems:"stretch"}}>
           <button onClick={goHome} title="처음 페이지로 이동 (작성 내용 유지)"
-            style={{display:"inline-flex",alignItems:"center",justifyContent:"center",padding:"0 28px",borderRadius:12,background:"transparent",color:"#6E7A8F",border:"1px solid #6E7A8F66",cursor:"pointer",fontSize:16,fontWeight:600,fontFamily:"inherit",height:48,whiteSpace:"nowrap"}}>
+            style={{display:"inline-flex",alignItems:"center",justifyContent:"center",padding:"0 28px",borderRadius:12,background:"transparent",color:"#565F72",border:"1px solid #6E7A8F66",cursor:"pointer",fontSize:16,fontWeight:600,fontFamily:"inherit",height:48,whiteSpace:"nowrap"}}>
             처음으로
           </button>
           <button onClick={handleSaveResult} disabled={isSavingDocx}
@@ -3012,7 +3012,7 @@ export default function App() {
         </div>
 
         <div style={{ marginTop: 32, paddingTop: 16, borderTop: '1px solid rgba(110, 122, 143, 0.2)' }}>
-          <p style={{ fontSize: 14, color: '#6E7A8F', textAlign: 'center', lineHeight: 1.6, margin: 0 }}>
+          <p style={{ fontSize: 14, color: '#565F72', textAlign: 'center', lineHeight: 1.6, margin: 0 }}>
             © 2026 CareerEngineer. All Rights Reserved. 저작권법에 의하여 보호받는 저작물이므로 무단 전재와 무단 복제를 금합니다. 이 자료는 구매하신 분의 취업을 위한 개인 학습 용도로 자유롭게 활용하실 수 있으나, 자료의 전부 또는 일부를 다른 사람에게 공유하거나, 복제·재판매·재배포하는 것은 금지되어 있습니다. <strong>이를 위반할 경우 관련 법률에 따라 민·형사상 책임을 질 수 있습니다.</strong>
           </p>
         </div>
